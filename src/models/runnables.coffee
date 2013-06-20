@@ -2,6 +2,7 @@ async = require 'async'
 configs = require '../configs'
 projects = require './projects'
 users = require './users'
+_ = require 'lodash'
 
 Runnables =
 
@@ -131,136 +132,74 @@ Runnables =
       if err then cb { code: 500, msg: 'error counting votes in mongodb' } else
         cb null, { count: count - 1 }
 
-  listAll: (sortByVotes, limit, page, cb) ->
-    if not sortByVotes
-      projects.find().skip(page*limit).limit(limit).exec (err, results) ->
-        if err then cb { code: 500, msg: 'error querying mongodb' } else
-          cb null, arrayToJSON results
+  list: (query, options, cb) ->
+    if typeof options is 'function'
+      cb = options
+      options = {}
+    formatDatabaseQuery query
+    formatDatabaseOptions options
+    if (options.sortByVotes)
+      this.listSortedByVotes query, options.sort[0], options, cb
     else
-      users.aggregate voteSortPipelineLimited(limit, limit*page), (err, results) ->
-        if err then cb { code: 500, msg: 'error aggragating votes in mongodb' } else
-          async.mapSeries results, (result, cb) ->
-            projects.findOne _id: result._id, (err, runnable) ->
-              if err then cb { code: 500, msg: 'error retrieving project from mongodb' } else
-                runnable.votes = result.number - 1
-                cb null, runnable
-          , (err, results) ->
-            if err then cb err else
-              result = for item in results
-                json = item.toJSON()
-                json._id = encodeId json._id
-                json.votes = item.votes
-                if json.parent then json.parent = encodeId json.parent
-                json
-              cb null, result
+      console.log(query);
+      projects.find query, options.fields, options, (err, results) ->
+        if err then cb { code: 500, msg: 'error querying mongodb' }
+        encodeAndGetOwners results, cb
 
-  listPublished: (sortByVotes, limit, page, cb) ->
-    if not sortByVotes
-      projects.find(tags: $not: $size: 0).skip(page*limit).limit(limit).exec (err, results) ->
-        if err then cb { code: 500, msg: 'error querying mongodb' } else
-          cb null, arrayToJSON results
-    else
+  listSortedByVotes: (query, voteSort, options, cb) ->
+    if typeof options is 'function'
+      cb = options
+      options = {}
+    formatDatabaseQuery query
+    formatDatabaseOptions options
+    if (Object.keys(query).length) # if there is a query
+      # TODO: use aggregate '$match: {$in:projectIds}' to make this more efficient
       users.aggregate voteSortPipeline, (err, results) ->
         if err then cb { code: 500, msg: 'error aggragating votes in mongodb' } else
-          skip = page*limit
           count = 0
-          async.mapSeries results, (result, cb) ->
-            projects.findOne { _id: result._id, tags: $not: $size: 0 }, (err, runnable) ->
-              if err then cb { code: 500, msg: 'error retrieving project from mongodb' } else
-                if not runnable
-                  cb()
-                else
-                  if skip
-                    skip--
+          async.mapSeries results,
+            (result, cb) ->
+              newQuery = _.extend({ _id:result._id }, query);
+              projects.findOne newQuery, (err, project) ->
+                if err then cb { code: 500, msg: 'error retrieving project from mongodb' } else
+                  if not project
                     cb()
+                  else if options.skip
+                   options.skip--
+                   cb()
+                  else if count is options.limit
+                   cb()
                   else
-                    if count is limit then cb() else
-                      count = count + 1
-                      runnable.votes = result.number - 1
-                      cb null, runnable
+                    count++
+                    project = project.toJSON();
+                    project.votes = result.number - 1
+                    encodeAndGetOwner project, cb
           , (err, results) ->
             if err then cb err else
-              result = [ ]
-              for item in results
-                if item
-                  json = item.toJSON()
-                  json._id = encodeId json._id
-                  json.votes = item.votes
-                  if json.parent then json.parent = encodeId json.parent
-                  result.push json
-              cb null, result
-
-  listChannel: (tag, sortByVotes, limit, page, cb) ->
-    if not sortByVotes
-      projects.find('tags.name': tag).skip(page*limit).limit(limit).exec (err, results) ->
-        if err then cb { code: 500, msg: 'error querying mongodb' } else
-          cb null, arrayToJSON results
+              results = results.filter exists # filter out any non existant projects
+              cb err, results
     else
-      users.aggregate voteSortPipeline, (err, results) ->
-        if err then cb { code: 500, msg: 'error aggragating votes in mongodb' } else
-          skip = page*limit
-          count = 0
-          async.mapSeries results, (result, cb) ->
-            projects.findOne { _id: result._id, 'tags.name': tag }, (err, runnable) ->
-              if err then cb { code: 500, msg: 'error retrieving project from mongodb' } else
-                if not runnable
-                  cb()
+      users.aggregate voteSortPipelineLimited(options.limit, options.skip), (err, results) ->
+        if err
+          cb { code: 500, msg: 'error aggregating votes projects from mongodb', err:err }
+        else if results.length is 0
+          cb null, []
+        else
+          async.mapSeries results,
+            (result, cb) ->
+              projects.findOne _id: result._id, options.fields, (err, project) ->
+                if err
+                  cb { code: 500, msg: 'error retrieving project from mongodb', err:err }
+                else if not project #possible if project was deleted
+                  cb null, null
                 else
-                  if skip
-                    skip--
-                    cb()
-                  else
-                    if count is limit then cb() else
-                      count = count + 1
-                      runnable.votes = result.number - 1
-                      cb null, runnable
+                  project = project.toJSON();
+                  project.votes = result.number - 1
+                  encodeAndGetOwner project, cb
           , (err, results) ->
             if err then cb err else
-              result = [ ]
-              for item in results
-                if item
-                  json = item.toJSON()
-                  json._id = encodeId json._id
-                  json.votes = item.votes
-                  if json.parent then json.parent = encodeId json.parent
-                  result.push json
-              cb null, result
-
-  listOwn: (userId, sortByVotes, limit, page, cb) ->
-    if not sortByVotes
-      projects.find(owner: userId).skip(page*limit).limit(limit).exec (err, results) ->
-        if err then cb { code: 500, msg: 'error querying mongodb' } else
-          cb null, arrayToJSON results
-    else
-      users.aggregate voteSortPipeline, (err, results) ->
-        if err then cb { code: 500, msg: 'error aggragating votes in mongodb' } else
-          skip = page*limit
-          count = 0
-          async.mapSeries results, (result, cb) ->
-            projects.findOne { _id: result._id, owner: userId }, (err, runnable) ->
-              if err then cb { code: 500, msg: 'error retrieving project from mongodb' } else
-                if not runnable
-                  cb()
-                else
-                  if skip
-                    skip--
-                    cb()
-                  else
-                    if count is limit then cb() else
-                      count = count + 1
-                      runnable.votes = result.number - 1
-                      cb null, runnable
-          , (err, results) ->
-            if err then cb err else
-              result = [ ]
-              for item in results
-                if item
-                  json = item.toJSON()
-                  json._id = encodeId json._id
-                  json.votes = item.votes
-                  if json.parent then json.parent = encodeId json.parent
-                  result.push json
-              cb null, result
+              results = results.filter exists # filter out any non existant projects
+              cb err, results
 
   getComments: (runnableId, fetchUsers, cb) ->
     runnableId = decodeId runnableId
@@ -350,6 +289,8 @@ Runnables =
               if err then cb { code: 500, 'error looking up user' } else
                 if not user then cb { code: 500, 'user not found' } else
                   if user.permission_level < 2 then cb { code: 403, msg: 'permission denied' } else
+                    # TODO: make sure that tag is not a duplicate,
+                    # also make this atomic so that one call may not overwrite another.
                     project.tags.push name: text
                     tagId = project.tags[project.tags.length-1]._id
                     project.save (err) ->
@@ -511,6 +452,82 @@ arrayToJSON = (res) ->
     if json.parent then json.parent = encodeId json.parent
     json
 
+formatDatabaseQuery = (query) ->
+  if query._id then query._id = decodeId query._id
+  if query.published
+    query.published = undefined
+    query.tags = $not: $size: 0
+  if Array.isArray(query.tags)
+    query.tags = $in: _.clone(query.tags)
+  query
+
+formatDatabaseOptions = (options) ->
+  defaults =
+    limit: 25,
+    skip : 0,
+    page : undefined
+  ['limit','page','skip'].forEach (key) ->
+    options[key] = parseInt(options[key])
+    if isNaN options[key] then options[key] = defaults[key]
+  if options.limit > defaults.limit
+    options.limit = defaults.limit
+  if options.page
+    options.skip = (options.page-1) * options.limit
+  # sort formatting
+  if typeof options.sort is 'string' then options.sort = [options.sort]
+  options.sortByVotes = Boolean(
+    options.sort &&
+    options.sort.some (item) ->
+      item is 'votes' or item is '-votes'
+  );
+  # fields
+  options.fields = options.fields || null # default to all fields
+  options
+
+encodeProject = (project) ->
+  if project.toJSON then project = project.toJSON()
+  project._id = encodeId project._id
+  if project.parent then project.parent = encodeId project.parent
+  project
+
+encodeProjects = (projects) ->
+  if projects.toJSON then projects = projects.toJSON()
+  if Array.isArray projects
+    projects.map encodeProject
+  else
+    encodeProject projects
+
+getProjectOwner = (project, cb) ->
+  # TODO: remove private user fields from being returned.
+  if not project then cb null, project else
+    if project.toJSON then project = project.toJSON()
+    users.findById project.owner, (err, user) ->
+      if err then cb err else
+        project.ownerJSON = user && user.toJSON()
+        cb null, project
+
+getProjectOwners = (projects, cb) ->
+  if not projects then cb null, projects else
+    if projects.toJSON then projects = projects.toJSON()
+    if Array.isArray projects
+      async.map projects, async.apply(getProjectOwner, project), cb
+    else
+      getProjectOwner projects, cb
+
+encodeAndGetOwner = (project, cb) ->
+  if not project then cb null, project else
+    if project.toJSON then project = project.toJSON()
+    project = encodeProject project
+    getProjectOwner project, cb
+
+encodeAndGetOwners = (projects, cb) ->
+  if not projects then cb null, projects else
+    if projects.toJSON then projects = projects.toJSON()
+    if Array.isArray projects
+      async.map projects, encodeAndGetOwner, cb
+    else
+      encodeAndGetOwner projects, cb
+
 commentsToJSON = (res) ->
   result = [ ]
   res.forEach (item) ->
@@ -531,3 +548,6 @@ decodeId = (id) -> id
 if configs.shortProjectIds
   encodeId = (id) -> (new Buffer(id.toString(), 'hex')).toString('base64').replace(plus,'-').replace(slash,'_')
   decodeId = (id) -> (new Buffer(id.toString().replace(minus,'+').replace(underscore,'/'), 'base64')).toString('hex');
+
+exists = (o) ->
+  return o isnt null and o isnt undefined# not null or undefined

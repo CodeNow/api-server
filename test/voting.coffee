@@ -318,7 +318,7 @@ describe 'voting api', ->
                                             cb()
                                   , (err) ->
                                     if err then done err else
-                                      user.get("http://localhost:#{configs.port}/runnables?channel=facebook&sort=votes")
+                                      user.get("http://localhost:#{configs.port}/runnables?tags.name=facebook&sort=votes")
                                         .set('runnable-token', token)
                                         .end (err, res) ->
                                           if err then done err else

@@ -2,6 +2,7 @@ express = require 'express'
 path = require 'path'
 users = require '../models/users'
 runnables = require '../models/runnables'
+_ = require 'lodash'
 
 runnableApp = module.exports = express()
 
@@ -17,50 +18,11 @@ runnableApp.post '/runnables', (req, res, next) ->
         res.json 201, runnable
 
 runnableApp.get '/runnables', (req, res, next) ->
-  if req.query.published
-    limit = 200
-    if req.query.limit and req.query.limit < 200
-      limit = Number req.query.limit
-    page = 0
-    if req.query.page
-      page = Number req.query.page
-    sortByVotes = req.query.sort is 'votes'
-    runnables.listPublished sortByVotes, limit, page, (err, results) ->
-      if err then next err else
-        res.json results
-  else if req.query.channel
-    limit = 200
-    if req.query.limit and req.query.limit < 200
-      limit = Number req.query.limit
-    page = 0
-    if req.query.page
-      page = Number req.query.page
-    sortByVotes = req.query.sort is 'votes'
-    runnables.listChannel req.query.channel, sortByVotes, limit, page, (err, results) ->
-      if err then next err else
-        res.json results
-  else if req.query.owner?
-    sortByVotes = req.query.sort is 'votes'
-    limit = 200
-    if req.query.limit and req.query.limit < 200
-      limit = Number req.query.limit
-    page = 0
-    if req.query.page
-      page = Number req.query.page
-    runnables.listOwn req.query.owner, sortByVotes, limit, page, (err, results) ->
-      if err then next err else
-        res.json results
-  else
-    limit = 200
-    if req.query.limit and req.query.limit < 200
-      limit = Number req.query.limit
-    page = 0
-    if req.query.page
-      page = Number req.query.page
-    sortByVotes = req.query.sort is 'votes'
-    runnables.listAll sortByVotes, limit, page, (err, results) ->
-      if err then next err else
-        res.json results
+  options = _.pick(req.query, 'skip', 'sort', 'limit', 'page');
+  query   = _.omit(req.query, 'skip', 'sort', 'limit', 'page');
+  runnables.list query, options, (err, results) ->
+    if err then res.json err.code, message:err.msg else
+      res.json results
 
 runnableApp.get '/runnables/:id', (req, res, next) ->
   fetchComments = req.query.comments?

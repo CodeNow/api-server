@@ -17,10 +17,16 @@ app.use runnables
 app.use channels
 app.use app.router
 app.use (err, req, res, next) ->
-  if err.msg and err.code
-    if configs.throwErrors and err.error then throw err.error else
-      res.json err.code, message: err.msg
+  if err && err.msg and err.code
+    res.json err.code, message: err.msg
   else
+    if err
+      logErr = err
+    if err.err
+      logErr = err.err
+    console.log(logErr)
+    console.log(logErr.message)
+    console.log(logErr.stack)
     res.json 500, { message: 'something bad happened' }
 
 app.get '/', (req, res) -> res.json { message: 'hello!' }
@@ -32,6 +38,6 @@ server = http.createServer app
 module.exports =
   configs: configs
   start: (cb) ->
-    server.listen configs.port, cb
+    server.listen process.env.PORT || configs.port, cb
   stop: (cb) ->
     server.close cb
