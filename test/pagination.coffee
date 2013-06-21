@@ -32,7 +32,7 @@ describe 'pagination api', ->
                       res.should.have.status 200
                       res.body.should.be.a.array
                       res.body.length.should.equal 5
-                      elem = res.body[2]._id
+                      elem = res.body[1]._id
                       user.get("http://localhost:#{configs.port}/runnables?owner=#{owner}&page=2&limit=1")
                         .end (err, res) ->
                           if err then done err else
@@ -68,7 +68,7 @@ describe 'pagination api', ->
                       res.should.have.status 200
                       res.body.should.be.a.array
                       res.body.length.should.equal 5
-                      elem = res.body[2]._id
+                      elem = res.body[1]._id
                       user.get("http://localhost:#{configs.port}/runnables?owner=#{owner}&sort=votes&page=2&limit=1")
                         .end (err, res) ->
                           if err then done err else
@@ -103,7 +103,7 @@ describe 'pagination api', ->
                         res.should.have.status 200
                         res.body.should.be.a.array
                         res.body.length.should.equal 8
-                        elem = res.body[2]._id
+                        elem = res.body[1]._id
                         user.get("http://localhost:#{configs.port}/runnables?page=2&limit=1")
                           .end (err, res) ->
                             if err then done err else
@@ -172,7 +172,7 @@ describe 'pagination api', ->
                         res.body.should.be.a.array
                         res.body.length.should.equal 2
                         elem = res.body[1]._id
-                        user.get("http://localhost:#{configs.port}/runnables?published=true&page=1&limit=1")
+                        user.get("http://localhost:#{configs.port}/runnables?published=true&page=2&limit=1")
                           .end (err, res) ->
                             if err then done err else
                               res.should.have.status 200
@@ -207,12 +207,13 @@ describe 'pagination api', ->
                         res.body.should.be.a.array
                         res.body.length.should.equal 2
                         elem = res.body[1]._id
-                        user.get("http://localhost:#{configs.port}/runnables?published=true&sort=votes&page=1&limit=1")
+                        user.get("http://localhost:#{configs.port}/runnables?published=true&sort=votes&page=2&limit=1")
                           .end (err, res) ->
                             if err then done err else
                               res.should.have.status 200
                               res.body.should.be.a.array
                               res.body.length.should.equal 1
+                              res.body[0]._id.should.equal elem
                               done()
 
   it 'should be able to ::paginate channel runnable list', (done) ->
@@ -247,15 +248,15 @@ describe 'pagination api', ->
                       cb()
         , (err) ->
           if err then done err else
-            user.get("http://localhost:#{configs.port}/runnables?channel=facebook")
+            user.get("http://localhost:#{configs.port}/runnables?tags.name=facebook")
               .set('runnable-token', token)
               .end (err, res) ->
                 if err then done err else
                   res.should.have.status 200
                   res.body.should.be.a.array
                   res.body.length.should.equal 6
-                  elem = res.body[3]._id
-                  user.get("http://localhost:#{configs.port}/runnables?channel=facebook&page=3&limit=1")
+                  elem = res.body[2]._id
+                  user.get("http://localhost:#{configs.port}/runnables?tags.name=facebook&page=3&limit=1")
                     .set('runnable-token', token)
                     .end (err, res) ->
                       if err then done err else
@@ -298,7 +299,7 @@ describe 'pagination api', ->
                       cb()
         , (err) ->
           if err then done err else
-            user.get("http://localhost:#{configs.port}/runnables?channel=facebook&sort=votes")
+            user.get("http://localhost:#{configs.port}/runnables?tags.name=facebook&sort=votes")
               .set('runnable-token', token)
               .end (err, res) ->
                 if err then done err else
@@ -306,7 +307,7 @@ describe 'pagination api', ->
                   res.body.should.be.a.array
                   res.body.length.should.equal 6
                   elem = res.body[4]._id
-                  user.get("http://localhost:#{configs.port}/runnables?channel=facebook&sort=votes&page=2&limit=2")
+                  user.get("http://localhost:#{configs.port}/runnables?tags.name=facebook&sort=votes&page=2&limit=2")
                     .set('runnable-token', token)
                     .end (err, res) ->
                       if err then done err else

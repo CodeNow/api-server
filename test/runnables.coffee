@@ -309,7 +309,7 @@ describe 'runnables api', ->
   it 'should be possible to list all ::runnables which belong to a channel', (done) ->
     helpers.authedUser (err, user) ->
       if err then done err else
-        user.get("http://localhost:#{configs.port}/runnables?channel=facebook")
+        user.get("http://localhost:#{configs.port}/runnables?tags.name=facebook")
           .end (err, res) ->
             if err then done err else
               res.should.have.status 200
