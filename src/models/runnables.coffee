@@ -141,7 +141,6 @@ Runnables =
     if (options.sortByVotes)
       this.listSortedByVotes query, options.sort[0], options, cb
     else
-      console.log(query);
       projects.find query, options.fields, options, (err, results) ->
         if err then cb { code: 500, msg: 'error querying mongodb' }
         encodeAndGetOwners results, cb
