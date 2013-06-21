@@ -489,13 +489,6 @@ encodeProject = (project) ->
   if project.parent then project.parent = encodeId project.parent
   project
 
-encodeProjects = (projects) ->
-  if projects.toJSON then projects = projects.toJSON()
-  if Array.isArray projects
-    projects.map encodeProject
-  else
-    encodeProject projects
-
 getProjectOwner = (project, cb) ->
   # TODO: remove private user fields from being returned.
   if not project then cb null, project else
@@ -504,14 +497,6 @@ getProjectOwner = (project, cb) ->
       if err then cb err else
         project.ownerJSON = user && user.toJSON()
         cb null, project
-
-getProjectOwners = (projects, cb) ->
-  if not projects then cb null, projects else
-    if projects.toJSON then projects = projects.toJSON()
-    if Array.isArray projects
-      async.map projects, async.apply(getProjectOwner, project), cb
-    else
-      getProjectOwner projects, cb
 
 encodeAndGetOwner = (project, cb) ->
   if not project then cb null, project else
@@ -522,10 +507,7 @@ encodeAndGetOwner = (project, cb) ->
 encodeAndGetOwners = (projects, cb) ->
   if not projects then cb null, projects else
     if projects.toJSON then projects = projects.toJSON()
-    if Array.isArray projects
-      async.map projects, encodeAndGetOwner, cb
-    else
-      encodeAndGetOwner projects, cb
+    async.map projects, encodeAndGetOwner, cb
 
 commentsToJSON = (res) ->
   result = [ ]
