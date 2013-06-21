@@ -38,6 +38,6 @@ server = http.createServer app
 module.exports =
   configs: configs
   start: (cb) ->
-    server.listen process.env.PORT || configs.port, cb
+    server.listen configs.port, cb
   stop: (cb) ->
     server.close cb
