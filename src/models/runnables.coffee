@@ -142,17 +142,10 @@ Runnables =
           async.map results, (result, cb) ->
             projects.findOne _id: result._id, (err, runnable) ->
               if err then cb { code: 500, msg: 'error retrieving project from mongodb' } else
-                runnable.votes = result.number - 1
-                cb null, runnable
-          , (err, results) ->
-            if err then cb err else
-              result = for item in results
-                json = item.toJSON()
-                json._id = encodeId json._id
-                json.votes = item.votes
-                if json.parent then json.parent = encodeId json.parent
-                json
-              cb null, result
+                json = runnable.toJSON()
+                json.votes = result.number - 1
+                encodeProjectAndGetOwner json, cb
+          , cb
 
   listFiltered: (query, sortByVotes, limit, page, cb) ->
       if not sortByVotes
@@ -169,17 +162,10 @@ Runnables =
               async.map results, (result, cb) ->
                 projects.findOne { _id: result._id }, (err, runnable) ->
                   if err then cb { code: 500, msg: 'error retrieving project from mongodb' } else
-                    runnable.votes = result.number - 1
-                    cb null, runnable
-              , (err, results) ->
-                if err then cb err else
-                  result = for item in results
-                    json = item.toJSON()
-                    json._id = encodeId json._id
-                    json.votes = item.votes
-                    if json.parent then json.parent = encodeId json.parent
-                    json
-                  cb null, result
+                    json = runnable.toJSON()
+                    json.votes = result.number - 1
+                    encodeProjectAndGetOwner json, cb
+              , cb
 
   getComments: (runnableId, fetchUsers, cb) ->
     runnableId = decodeId runnableId
@@ -437,6 +423,14 @@ arrayToJSON = (res) ->
     json._id = encodeId json._id
     if json.parent then json.parent = encodeId json.parent
     json
+
+encodeProjectAndGetOwner = (project, cb) ->
+  project._id = encodeId project._id
+  if project.parent then project.parent = encodeId project.parent
+  users.publicFindById project.owner, (err, user) ->
+    if err then cb err else
+      project.ownerJSON = user && user.toJSON()
+      cb null, project
 
 commentsToJSON = (res) ->
   result = [ ]

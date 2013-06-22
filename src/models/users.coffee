@@ -98,6 +98,12 @@ userSchema.statics.registerUser = (userId, data, cb) ->
       if err then cb { code: 500, msg: 'error computing password hash' } else
         setPassword hash
 
+userSchema.statics.publicFindById = (userId, cb) ->
+  publicFields =
+    username : 1,
+    fb_userid: 1
+  this.findById userId, publicFields, cb
+
 userSchema.methods.getVotes = () ->
   votes = [ ]
   for vote in @votes
