@@ -101,8 +101,13 @@ userSchema.statics.registerUser = (userId, data, cb) ->
 userSchema.statics.publicFindById = (userId, cb) ->
   publicFields =
     username : 1,
-    fb_userid: 1
-  this.findById userId, publicFields, cb
+    fb_userid: 1,
+    email    : 1 # email is require for gravitar
+  this.findById userId, publicFields, (err, user) ->
+    if err then cb err else
+      json = user.toJSON()
+      json.email = undefined #remove email after gravitar generated
+      cb(null, json)
 
 userSchema.methods.getVotes = () ->
   votes = [ ]

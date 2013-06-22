@@ -423,9 +423,9 @@ arrayToJSON = (res) ->
 encodeProjectAndGetOwner = (project, cb) ->
   project._id = encodeId project._id
   if project.parent then project.parent = encodeId project.parent
-  users.publicFindById project.owner, (err, user) ->
+  users.publicFindById project.owner, (err, user_json) ->
     if err then cb err else
-      project.ownerJSON = user && user.toJSON()
+      project.ownerJSON = user_json
       cb null, project
 
 commentsToJSON = (res) ->
