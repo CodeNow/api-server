@@ -78,9 +78,7 @@ Runnables =
                 json_project = project.toJSON()
                 json_project.state = state
                 json_project.comments = commentsToJSON project.comments
-                json_project._id = encodeId json_project._id
-                if json_project.parent then json_project.parent = encodeId json_project.parent
-                cb null, json_project
+                encodeProjectAndGetOwner json_project, cb
     else
       projects.findOne _id: runnableId, (err, project) ->
         if err then cb { code: 500, msg: 'error looking up runnable' } else
@@ -88,10 +86,8 @@ Runnables =
             project.containerState (err, state) ->
               if err then cb err else
                 json_project = project.toJSON()
-                json_project._id = encodeId json_project._id
-                if json_project.parent then json_project.parent = encodeId json_project.parent
                 json_project.state = state
-                cb null, json_project
+                encodeProjectAndGetOwner json_project, cb
 
   start: (userId, runnableId, cb) ->
     runnableId = decodeId runnableId
