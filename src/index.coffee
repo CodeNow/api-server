@@ -22,8 +22,9 @@ app.use (err, req, res, next) ->
       res.json err.code, message: err.msg
   else
     res.json 500, { message: 'something bad happened' }
-    console.log(err.message);
-    console.log(err.stack);
+    if configs.throwErrors
+      console.log(err.message);
+      console.log(err.stack);
 
 app.get '/', (req, res) -> res.json { message: 'hello!' }
 app.get '/throws', -> throw new Error 'zomg'
