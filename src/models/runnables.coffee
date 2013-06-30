@@ -78,9 +78,7 @@ Runnables =
                 json_project = project.toJSON()
                 json_project.state = state
                 json_project.comments = commentsToJSON project.comments
-                json_project._id = encodeId json_project._id
-                if json_project.parent then json_project.parent = encodeId json_project.parent
-                cb null, json_project
+                encodeProjectAndGetOwner json_project, cb
     else
       projects.findOne _id: runnableId, (err, project) ->
         if err then cb { code: 500, msg: 'error looking up runnable' } else
@@ -88,10 +86,8 @@ Runnables =
             project.containerState (err, state) ->
               if err then cb err else
                 json_project = project.toJSON()
-                json_project._id = encodeId json_project._id
-                if json_project.parent then json_project.parent = encodeId json_project.parent
                 json_project.state = state
-                cb null, json_project
+                encodeProjectAndGetOwner json_project, cb
 
   start: (userId, runnableId, cb) ->
     runnableId = decodeId runnableId
@@ -142,17 +138,10 @@ Runnables =
           async.map results, (result, cb) ->
             projects.findOne _id: result._id, (err, runnable) ->
               if err then cb { code: 500, msg: 'error retrieving project from mongodb' } else
-                runnable.votes = result.number - 1
-                cb null, runnable
-          , (err, results) ->
-            if err then cb err else
-              result = for item in results
-                json = item.toJSON()
-                json._id = encodeId json._id
-                json.votes = item.votes
-                if json.parent then json.parent = encodeId json.parent
-                json
-              cb null, result
+                json = runnable.toJSON()
+                json.votes = result.number - 1
+                encodeProjectAndGetOwner json, cb
+          , cb
 
   listFiltered: (query, sortByVotes, limit, page, cb) ->
       if not sortByVotes
@@ -169,17 +158,10 @@ Runnables =
               async.map results, (result, cb) ->
                 projects.findOne { _id: result._id }, (err, runnable) ->
                   if err then cb { code: 500, msg: 'error retrieving project from mongodb' } else
-                    runnable.votes = result.number - 1
-                    cb null, runnable
-              , (err, results) ->
-                if err then cb err else
-                  result = for item in results
-                    json = item.toJSON()
-                    json._id = encodeId json._id
-                    json.votes = item.votes
-                    if json.parent then json.parent = encodeId json.parent
-                    json
-                  cb null, result
+                    json = runnable.toJSON()
+                    json.votes = result.number - 1
+                    encodeProjectAndGetOwner json, cb
+              , cb
 
   getComments: (runnableId, fetchUsers, cb) ->
     runnableId = decodeId runnableId
@@ -437,6 +419,14 @@ arrayToJSON = (res) ->
     json._id = encodeId json._id
     if json.parent then json.parent = encodeId json.parent
     json
+
+encodeProjectAndGetOwner = (project, cb) ->
+  project._id = encodeId project._id
+  if project.parent then project.parent = encodeId project.parent
+  users.publicFindById project.owner, (err, user_json) ->
+    if err then cb err else
+      project.ownerJSON = user_json
+      cb null, project
 
 commentsToJSON = (res) ->
   result = [ ]
