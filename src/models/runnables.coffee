@@ -9,7 +9,7 @@ Runnables =
     projects.create userId, framework, (err, project) ->
       if err then cb err else
         users.findUser _id: userId, (err, user) ->
-          if err then cb { code: 500, msg: 'error looking up user' } else
+          if err then cb { code: 500, msg: 'error looking up user', err:err } else
             if not user then { code: 404, msg: 'user not found' } else
               runnableId = encodeId project._id
               user.vote runnableId, (err) ->
@@ -24,12 +24,12 @@ Runnables =
   fork: (userId, runnableId, cb) ->
     runnableId = decodeId runnableId
     projects.findOne _id: runnableId, (err, parent) ->
-      if err then cb { code: 500, msg: 'error querying mongodb' } else
+      if err then cb { code: 500, msg: 'error querying mongodb', err:err } else
         if not parent then cb { code: 404, msg: 'parent runnable not found' } else
           projects.fork userId, parent, (err, project) ->
             if err then cb err else
               users.findUser _id: userId, (err, user) ->
-                if err then cb { code: 500, msg: 'error looking up user' } else
+                if err then cb { code: 500, msg: 'error looking up user', err:err } else
                   if not user then { code: 404, msg: 'user not found' } else
                     runnableId = encodeId project._id
                     user.vote runnableId, (err) ->
@@ -48,11 +48,11 @@ Runnables =
       projects.destroy runnableId, (err) ->
         if err then cb err else cb()
     projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error querying mongodb' } else
+      if err then cb { code: 500, msg: 'error querying mongodb', err:err } else
         if not project then cb { code: 404, msg: 'runnable not found' } else
           if project.owner.toString() is userId.toString() then removeProject() else
             users.findUser _id: userId, (err, user) ->
-              if err then cb { code: 500, msg: 'error looking up user' } else
+              if err then cb { code: 500, msg: 'error looking up user', err:err } else
                 if not user then { code: 404, msg: 'user not found' } else
                   if user.permission_level <= 1 then cb { code: 403, msg: 'permission denied' } else
                     for vote in user.votes
@@ -63,7 +63,7 @@ Runnables =
   isOwner: (userId, runnableId, cb) ->
     runnableId = decodeId runnableId
     projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error looking up runnable' } else
+      if err then cb { code: 500, msg: 'error looking up runnable', err:err } else
         if not project then cb { code: 404, msg: 'runnable not found' } else
           cb null, project.owner.toString() is userId.toString()
 
@@ -71,7 +71,7 @@ Runnables =
     runnableId = decodeId runnableId
     if fetchComments
       projects.findOne(_id: runnableId).populate('comments.user', 'email username').exec (err, project) ->
-        if err then cb { code: 500, msg: 'error looking up runnable' } else
+        if err then cb { code: 500, msg: 'error looking up runnable', err:err } else
           if not project then cb { code: 404, msg: 'runnable not found' } else
             project.containerState (err, state) ->
               if err then cb err else
@@ -83,7 +83,7 @@ Runnables =
                 cb null, json_project
     else
       projects.findOne _id: runnableId, (err, project) ->
-        if err then cb { code: 500, msg: 'error looking up runnable' } else
+        if err then cb { code: 500, msg: 'error looking up runnable', err:err } else
           if not project then cb { code: 404, msg: 'runnable not found' } else
             project.containerState (err, state) ->
               if err then cb err else
@@ -96,7 +96,7 @@ Runnables =
   start: (userId, runnableId, cb) ->
     runnableId = decodeId runnableId
     projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error looking up runnable' } else
+      if err then cb { code: 500, msg: 'error looking up runnable', err:err } else
         if not project then cb { code: 404, msg: 'runnable not found' } else
           if project.owner.toString() isnt userId.toString() then cb { code: 403, msg: 'permission denied' } else
             project.start (err) ->
@@ -112,7 +112,7 @@ Runnables =
   stop: (userId, runnableId, cb) ->
     runnableId = decodeId runnableId
     projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error looking up runnable' } else
+      if err then cb { code: 500, msg: 'error looking up runnable', err:err } else
         if not project then cb { code: 404, msg: 'runnable not found' } else
           if project.owner.toString() isnt userId.toString() then cb { code: 403, msg: 'permission denied' } else
             project.stop (err) ->
@@ -128,20 +128,20 @@ Runnables =
   getVotes: (runnableId, cb) ->
     runnableId = decodeId runnableId
     users.find('votes.runnable': runnableId).count().exec (err, count) ->
-      if err then cb { code: 500, msg: 'error counting votes in mongodb' } else
+      if err then cb { code: 500, msg: 'error counting votes in mongodb', err:err } else
         cb null, { count: count - 1 }
 
   listAll: (sortByVotes, limit, page, cb) ->
     if not sortByVotes
       projects.find().skip(page*limit).limit(limit).exec (err, results) ->
-        if err then cb { code: 500, msg: 'error querying mongodb' } else
+        if err then cb { code: 500, msg: 'error querying mongodb', err:err } else
           cb null, arrayToJSON results
     else
       users.aggregate voteSortPipeline(limit, limit*page), (err, results) ->
-        if err then cb { code: 500, msg: 'error aggragating votes in mongodb' } else
+        if err then cb { code: 500, msg: 'error aggragating votes in mongodb', err:err } else
           async.map results, (result, cb) ->
             projects.findOne _id: result._id, (err, runnable) ->
-              if err then cb { code: 500, msg: 'error retrieving project from mongodb' } else
+              if err then cb { code: 500, msg: 'error retrieving project from mongodb', err:err } else
                 runnable.votes = result.number - 1
                 cb null, runnable
           , (err, results) ->
@@ -157,7 +157,7 @@ Runnables =
   listFiltered: (query, sortByVotes, limit, page, cb) ->
       if not sortByVotes
         projects.find(query).skip(page*limit).limit(limit).exec (err, results) ->
-          if err then cb { code: 500, msg: 'error querying mongodb' } else
+          if err then cb { code: 500, msg: 'error querying mongodb', err:err } else
             cb null, arrayToJSON results
       else
         projects.find query, (err, selected) ->
@@ -165,10 +165,10 @@ Runnables =
           for project in selected
             filter.push project._id
           users.aggregate voteSortPipelineFiltered(limit, limit*page, filter), (err, results) ->
-            if err then cb { code: 500, msg: 'error aggragating votes in mongodb' } else
+            if err then cb { code: 500, msg: 'error aggragating votes in mongodb', err:err } else
               async.map results, (result, cb) ->
                 projects.findOne { _id: result._id }, (err, runnable) ->
-                  if err then cb { code: 500, msg: 'error retrieving project from mongodb' } else
+                  if err then cb { code: 500, msg: 'error retrieving project from mongodb', err:err } else
                     runnable.votes = result.number - 1
                     cb null, runnable
               , (err, results) ->
@@ -185,12 +185,12 @@ Runnables =
     runnableId = decodeId runnableId
     if fetchUsers
       projects.findOne(_id: runnableId).populate('comments.user', 'email username').exec (err, project) ->
-        if err then cb { code: 500, msg: 'error looking up runnable' } else
+        if err then cb { code: 500, msg: 'error looking up runnable', err:err } else
           if not project then cb { code: 404, msg: 'runnable not found' } else
             cb null, commentsToJSON project.comments
     else
       projects.findOne _id: runnableId, (err, project) ->
-        if err then cb { code: 500, msg: 'error looking up runnable' } else
+        if err then cb { code: 500, msg: 'error looking up runnable', err:err } else
           if not project then cb { code: 404, msg: 'runnable not found' } else
             cb null, project.comments
 
@@ -198,7 +198,7 @@ Runnables =
     runnableId = decodeId runnableId
     if fetchUser
       projects.findOne(_id: runnableId).populate('comments.user', 'email username').exec (err, project) ->
-        if err then cb { code: 500, msg: 'error looking up runnable' } else
+        if err then cb { code: 500, msg: 'error looking up runnable', err:err } else
           if not project then cb { code: 404, msg: 'runnable not found' } else
             comment = project.comments.id commentId
             if not comment then cb { code: 404, msg: 'comment not found' } else
@@ -208,7 +208,7 @@ Runnables =
               cb null, json_comment
     else
       projects.findOne _id: runnableId, (err, project) ->
-        if err then cb { code: 500, msg: 'error looking up runnable' } else
+        if err then cb { code: 500, msg: 'error looking up runnable', err:err } else
           if not project then cb { code: 404, msg: 'runnable not found' } else
             comment = project.comments.id commentId
             if not comment then cb { code: 404, msg: 'comment not found' } else
@@ -217,25 +217,25 @@ Runnables =
   addComment: (userId, runnableId, text, cb) ->
     runnableId = decodeId runnableId
     projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error looking up runnable' } else
+      if err then cb { code: 500, msg: 'error looking up runnable', err:err } else
         if not project then cb { code: 404, msg: 'runnable not found' } else
           project.comments.push
             user: userId
             text: text
           commentId = project.comments[project.comments.length-1]._id
           project.save (err) ->
-            if err then cb { code: 500, msg: 'error saving comment' } else
+            if err then cb { code: 500, msg: 'error saving comment', err:err } else
               cb null, { user: userId, text: text, _id: commentId }
 
   removeComment: (userId, runnableId, commentId, cb) ->
     runnableId = decodeId runnableId
     projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error looking up runnable' } else
+      if err then cb { code: 500, msg: 'error looking up runnable', err:err } else
         if not project then cb { code: 404, msg: 'runnable not found' } else
           remove = () ->
             project.comments.id(commentId).remove()
             project.save (err) ->
-              if err then cb { code: 500, msg: 'error removing comment from mongodb' } else
+              if err then cb { code: 500, msg: 'error removing comment from mongodb', err:err } else
                 cb()
           if project.comments.id(commentId).user.toString() is userId.toString() then remove() else
             users.findUser _id: userId, (err, user) ->
@@ -246,14 +246,14 @@ Runnables =
   getTags: (runnableId, cb) ->
     runnableId = decodeId runnableId
     projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error looking up runnable' } else
+      if err then cb { code: 500, msg: 'error looking up runnable', err:err } else
         if not project then cb { code: 404, msg: 'runnable not found' } else
           cb null, project.tags
 
   getTag: (runnableId, tagId, cb) ->
     runnableId = decodeId runnableId
     projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error looking up runnable' } else
+      if err then cb { code: 500, msg: 'error looking up runnable', err:err } else
         if not project then cb { code: 404, msg: 'runnable not found' } else
           tag = project.tags.id tagId
           if not tag then cb { code: 404, msg: 'tag not found' } else
@@ -262,54 +262,54 @@ Runnables =
   addTag: (userId, runnableId, text, cb) ->
     runnableId = decodeId runnableId
     projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error looking up runnable' } else
+      if err then cb { code: 500, msg: 'error looking up runnable', err:err } else
         if not project then cb { code: 404, msg: 'runnable not found' } else
           if project.owner.toString() isnt userId.toString()
             users.findUser _id: userId, (err, user) ->
-              if err then cb { code: 500, 'error looking up user' } else
+              if err then cb { code: 500, 'error looking up user', err:err } else
                 if not user then cb { code: 500, 'user not found' } else
                   if user.permission_level < 2 then cb { code: 403, msg: 'permission denied' } else
                     project.tags.push name: text
                     tagId = project.tags[project.tags.length-1]._id
                     project.save (err) ->
-                      if err then cb { code: 500, msg: 'error saving tag' } else
+                      if err then cb { code: 500, msg: 'error saving tag', err:err } else
                         cb null, { name: text, _id: tagId }
           else
             project.tags.push name: text
             tagId = project.tags[project.tags.length-1]._id
             project.save (err) ->
-              if err then cb { code: 500, msg: 'error saving tag' } else
+              if err then cb { code: 500, msg: 'error saving tag', err:err } else
                 cb null, { name: text, _id: tagId }
 
   removeTag: (userId, runnableId, tagId, cb) ->
     runnableId = decodeId runnableId
     projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error looking up runnable' } else
+      if err then cb { code: 500, msg: 'error looking up runnable', err:err } else
         if not project then cb { code: 404, msg: 'runnable not found' } else
           if project.owner.toString() isnt userId.toString()
             user = users.findOne _id: userId, (err, user) ->
-              if err then cb { code: 500, msg: 'error looking up user' } else
+              if err then cb { code: 500, msg: 'error looking up user', err:err } else
                 if not user then cb { code: 500, msg: 'user not found' } else
                   if user.permission_level < 2 then cb { code: 403, msg: 'permission denied' } else
                     project.tags.id(tagId).remove()
                     project.save (err) ->
-                      if err then cb { code: 500, msg: 'error removing tag from mongodb' } else cb()
+                      if err then cb { code: 500, msg: 'error removing tag from mongodb', err:err } else cb()
           else
             project.tags.id(tagId).remove()
             project.save (err) ->
-              if err then cb { code: 500, msg: 'error removing tag from mongodb' } else cb()
+              if err then cb { code: 500, msg: 'error removing tag from mongodb', err:err } else cb()
 
   listFiles: (runnableId, content, dir, default_tag, path, cb) ->
     runnableId = decodeId runnableId
     projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error looking up runnable' } else
+      if err then cb { code: 500, msg: 'error looking up runnable', err:err } else
         if not project then cb { code: 404, msg: 'runnable not found' } else
           project.listFiles content, dir, default_tag, path, cb
 
   createFile: (userId, runnableId, name, path, content, cb) ->
     runnableId = decodeId runnableId
     projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error looking up runnable' } else
+      if err then cb { code: 500, msg: 'error looking up runnable', err:err } else
         if not project then cb { code: 404, msg: 'runnable not found' } else
           if project.owner.toString() isnt userId.toString() then cb { code: 403, msg: 'permission denied' } else
             project.createFile name, path, content, cb
@@ -317,7 +317,7 @@ Runnables =
   updateFile: (userId, runnableId, fileId, content, cb) ->
     runnableId = decodeId runnableId
     projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error looking up runnable' } else
+      if err then cb { code: 500, msg: 'error looking up runnable', err:err } else
         if not project then cb { code: 404, msg: 'runnable not found' } else
           if project.owner.toString() isnt userId.toString() then cb { code: 403, msg: 'permission denied' } else
             project.updateFile fileId, content, cb
@@ -325,7 +325,7 @@ Runnables =
   defaultFile: (userId, runnableId, fileId, cb) ->
     runnableId = decodeId runnableId
     projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error looking up runnable' } else
+      if err then cb { code: 500, msg: 'error looking up runnable', err:err } else
         if not project then cb { code: 404, msg: 'runnable not found' } else
           if project.owner.toString() isnt userId.toString() then cb { code: 403, msg: 'permission denied' } else
             project.tagFile fileId, cb
@@ -333,7 +333,7 @@ Runnables =
   renameFile: (userId, runnableId, fileId, name, cb) ->
     runnableId = decodeId runnableId
     projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error looking up runnable' } else
+      if err then cb { code: 500, msg: 'error looking up runnable', err:err } else
         if not project then cb { code: 404, msg: 'runnable not found' } else
           if project.owner.toString() isnt userId.toString() then cb { code: 403, msg: 'permission denied' } else
             project.renameFile fileId, name, cb
@@ -341,7 +341,7 @@ Runnables =
   moveFile: (userId, runnableId, fileId, path, cb) ->
     runnableId = decodeId runnableId
     projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error looking up runnable' } else
+      if err then cb { code: 500, msg: 'error looking up runnable', err:err } else
         if not project then cb { code: 404, msg: 'runnable not found' } else
           if project.owner.toString() isnt userId.toString() then cb { code: 403, msg: 'permission denied' } else
             project.moveFile fileId, path, cb
@@ -349,7 +349,7 @@ Runnables =
   createDirectory: (userId, runnableId, name, path, cb) ->
     runnableId = decodeId runnableId
     projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error looking up runnable' } else
+      if err then cb { code: 500, msg: 'error looking up runnable', err:err } else
         if not project then cb { code: 404, msg: 'runnable not found' } else
           if project.owner.toString() isnt userId.toString() then cb { code: 403, msg: 'permission denied' } else
             project.createDirectory name, path, cb
@@ -357,7 +357,7 @@ Runnables =
   readFile: (runnableId, fileId, cb) ->
     runnableId = decodeId runnableId
     projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error looking up runnable' } else
+      if err then cb { code: 500, msg: 'error looking up runnable', err:err } else
         if not project then cb { code: 404, msg: 'runnable not found' } else
           file = project.files.id fileId
           if not file then cb { code: 404, msg: 'file not found' } else
@@ -366,7 +366,7 @@ Runnables =
   deleteFile: (runnableId, fileId, recursive, cb) ->
     runnableId = decodeId runnableId
     projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error looking up runnable' } else
+      if err then cb { code: 500, msg: 'error looking up runnable', err:err } else
         if not project then cb { code: 404, msg: 'runnable not found' } else
           file = project.files.id fileId
           if not file then cb { code: 404, msg: 'file not found' } else
@@ -375,7 +375,7 @@ Runnables =
   deleteAllFiles: (runnableId, cb) ->
     runnableId = decodeId runnableId
     projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error looking up runnable' } else
+      if err then cb { code: 500, msg: 'error looking up runnable', err:err } else
         if not project then cb { code: 404, msg: 'runnable not found' } else
           project.deleteAllFiles cb
 
