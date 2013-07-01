@@ -112,6 +112,25 @@ getrunnables = (req, res, next) ->
     if err then next err else
       res.json 200, containers
 
+getrunnable = (req, res, next) ->
+  runnables.getContainer req.user_id, req.params.runnableid, (err, container) ->
+    if err then next err else
+      res.json 200, container
+
+putrunnable = (req, res, next) ->
+  if not req.body.running? then next new error { code: 400, msg: 'must provide a running parameter' } else
+    if not req.body.name? then next new error { code: 400, msg: 'must provide a runnable name' } else
+      runnables.updateName req.user_id, req.params.runnableid, req.body.name, (err, runnable) ->
+        if err then next err else
+          if req.body.running
+            runnables.startContainer req.user_id, req.params.runnableid, (err, runnable) ->
+              if err then next err else
+                res.json runnable
+          else
+            runnables.stopContainer req.user_id, req.params.runnableid, (err, runnable) ->
+              if err then next err else
+                res.json runnable
+
 delrunnable = (req, res, next) ->
   runnables.removeContainer req.user_id, req.params.runnableid, (err) ->
     if err then next err else
@@ -165,6 +184,12 @@ app.post '/users/:userid/runnables', fetchuser, postrunnable
 
 app.get '/users/me/runnables', getrunnables
 app.get '/users/:userid/runnables', fetchuser, getrunnables
+
+app.get '/users/me/runnables/:runnableid', getrunnable
+app.get '/users/:userid/runnables/:runnableid', fetchuser, getrunnable
+
+app.put '/users/me/runnables/:runnableid', putrunnable
+app.put '/users/:userid/runnables/:runnableid', fetchuser, putrunnable
 
 app.del '/users/me/runnables/:runnableid', delrunnable
 app.del '/users/:userid/runnables/:runnableid', fetchuser, delrunnable
