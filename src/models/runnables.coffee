@@ -175,7 +175,7 @@ Runnables =
                   json_project = container.toJSON()
                   json_project._id = encodeId json_project._id
                   if json_project.parent then json_project.parent = encodeId json_project.parent
-                  json_project.state = instanceofte
+                  json_project.state = state
                   cb null, json_project
                 if not state.running then response state else
                   container.stop (err) ->
@@ -314,6 +314,9 @@ Runnables =
         if not container then cb new error { code: 404, msg: 'runnable not found' } else
           container.listFiles content, dir, default_tag, path, cb
 
+  # Praful: Both these methods are shimmmed to always get a running container
+  # this logic needs to be replaced to get the projects
+  # right container to interact with these files
   readDir: (runnableId, path, cb) ->
     runnableId = decodeId runnableId
     containers.findOne (err, container) ->
@@ -321,6 +324,14 @@ Runnables =
       if err then cb new error { code: 500, msg: 'error looking up runnable' } else
         if not container then cb new error { code: 404, msg: 'runnable not found' } else
           container.readDir path, cb
+
+  changeFile: (runnableId, path, content, cb) ->
+    runnableId = decodeId runnableId
+    containers.findOne (err, container) ->
+    # containers.findOne _id: runnableId, (err, container) ->
+      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+        if not container then cb new error { code: 404, msg: 'runnable not found' } else
+          container.changeFile path, content, cb
 
   createFile: (userId, runnableId, name, path, content, cb) ->
     runnableId = decodeId runnableId
