@@ -1,147 +1,216 @@
 async = require 'async'
 configs = require '../configs'
-projects = require './projects'
+containers = require './containers'
+error = require '../error'
+images = require './images'
 users = require './users'
 
 Runnables =
 
-  create: (userId, framework, cb) ->
-    projects.create userId, framework, (err, project) ->
+  createImage: (userId, from, cb) ->
+    handler = (err, image) ->
       if err then cb err else
         users.findUser _id: userId, (err, user) ->
-          if err then cb { code: 500, msg: 'error looking up user' } else
-            if not user then { code: 404, msg: 'user not found' } else
-              runnableId = encodeId project._id
-              user.vote runnableId, (err) ->
-                if err then { code: 500, msg: 'error updating vote count' } else
-                  project.containerState (err, state) ->
-                    if err then cb err else
-                      json_project = project.toJSON()
-                      json_project.state = state
-                      json_project._id = runnableId
-                      cb null, json_project
-
-  fork: (userId, runnableId, cb) ->
-    runnableId = decodeId runnableId
-    projects.findOne _id: runnableId, (err, parent) ->
-      if err then cb { code: 500, msg: 'error querying mongodb' } else
-        if not parent then cb { code: 404, msg: 'parent runnable not found' } else
-          projects.fork userId, parent, (err, project) ->
-            if err then cb err else
-              users.findUser _id: userId, (err, user) ->
-                if err then cb { code: 500, msg: 'error looking up user' } else
-                  if not user then { code: 404, msg: 'user not found' } else
-                    runnableId = encodeId project._id
-                    user.vote runnableId, (err) ->
-                      if err then { code: 500, msg: 'error updating vote count' } else
-                        project.containerState (err, state) ->
-                          if err then cb err else
-                            json_project = project.toJSON()
-                            json_project.state = state
-                            json_project._id = runnableId
-                            json_project.parent = encodeId json_project.parent
-                            cb null, json_project
-
-  delete: (userId, runnableId, cb) ->
-    runnableId = decodeId runnableId
-    removeProject = () ->
-      projects.destroy runnableId, (err) ->
-        if err then cb err else cb()
-    projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error querying mongodb' } else
-        if not project then cb { code: 404, msg: 'runnable not found' } else
-          if project.owner.toString() is userId.toString() then removeProject() else
-            users.findUser _id: userId, (err, user) ->
-              if err then cb { code: 500, msg: 'error looking up user' } else
-                if not user then { code: 404, msg: 'user not found' } else
-                  if user.permission_level <= 1 then cb { code: 403, msg: 'permission denied' } else
-                    for vote in user.votes
-                      if vote.runnable.toString() is project._id.toString()
-                        vote.remove()
-                    removeProject()
-
-  isOwner: (userId, runnableId, cb) ->
-    runnableId = decodeId runnableId
-    projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error looking up runnable' } else
-        if not project then cb { code: 404, msg: 'runnable not found' } else
-          cb null, project.owner.toString() is userId.toString()
-
-  get: (runnableId, fetchComments, cb) ->
-    runnableId = decodeId runnableId
-    if fetchComments
-      projects.findOne(_id: runnableId).populate('comments.user', 'email username').exec (err, project) ->
-        if err then cb { code: 500, msg: 'error looking up runnable' } else
-          if not project then cb { code: 404, msg: 'runnable not found' } else
-            project.containerState (err, state) ->
-              if err then cb err else
-                json_project = project.toJSON()
-                json_project.state = state
-                json_project.comments = commentsToJSON project.comments
-                json_project._id = encodeId json_project._id
-                if json_project.parent then json_project.parent = encodeId json_project.parent
-                cb null, json_project
+          if err then cb new error { code: 500, msg: 'error looking up user' } else
+            if not user then cb new error { code: 404, msg: 'user not found' } else
+              user.addVote image._id, (err) ->
+                if err then cb err else
+                  json_image = image.toJSON()
+                  if json_image.parent then json_image.parent = encodeId json_image.parent
+                  json_image._id = encodeId image._id
+                  cb null, json_image
+    if from is 'node.js'
+      images.createFromDisk userId, from, handler
     else
-      projects.findOne _id: runnableId, (err, project) ->
-        if err then cb { code: 500, msg: 'error looking up runnable' } else
-          if not project then cb { code: 404, msg: 'runnable not found' } else
-            project.containerState (err, state) ->
-              if err then cb err else
-                json_project = project.toJSON()
-                json_project._id = encodeId json_project._id
-                if json_project.parent then json_project.parent = encodeId json_project.parent
-                json_project.state = state
-                cb null, json_project
+      from = decodeId from
+      containers.findOne { _id: from }, (err, container) ->
+        if err then cb new error { code: 500, msg: 'error fetching container from mongodb'} else
+          if not container then cb new error { code: 403, msg: 'source runnable not found' } else
+            images.create container, handler
 
-  start: (userId, runnableId, cb) ->
-    runnableId = decodeId runnableId
-    projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error looking up runnable' } else
-        if not project then cb { code: 404, msg: 'runnable not found' } else
-          if project.owner.toString() isnt userId.toString() then cb { code: 403, msg: 'permission denied' } else
-            project.start (err) ->
-              if err then cb err else
-                project.containerState (err, state) ->
+  createContainer: (userId, from, cb) ->
+    from = decodeId from
+    images.findOne _id: from, (err, image) ->
+      if err then cb err else
+        if not image then cb new error { code: 400, msg: 'could not find source image to fork from' } else
+          containers.findOne { owner: userId, parent: from }, (err, container) ->
+            if err then cb new error { code: 500, msg: 'error querying for existing container' } else
+              if container then cb new error { code: 403, msg: 'already editing a project from this parent' } else
+                containers.create userId, image, (err, container) ->
                   if err then cb err else
-                    json_project = project.toJSON()
-                    json_project._id = encodeId json_project._id
-                    if json_project.parent then json_project.parent = encodeId json_project.parent
-                    json_project.state = state
-                    cb null, json_project
+                    container.getProcessState (err, state) ->
+                      if err then cb err else
+                        json_container = container.toJSON()
+                        if json_container.parent then json_container.parent = encodeId json_container.parent
+                        json_container.state = state
+                        json_container._id = encodeId container._id
+                        cb null, json_container
 
-  stop: (userId, runnableId, cb) ->
+  listContainers: (userId, parent, cb) ->
+    query = { owner: userId }
+    if parent then query.parent = decodeId parent
+    containers.find query, (err, containers) ->
+      if err then cb new error { code: 500, msg: 'error fetching containers from mongodb' } else
+        results = for item in containers
+          json = item.toJSON()
+          json._id = encodeId json._id
+          if json.parent then json.parent = encodeId json.parent
+          json
+        cb null, results
+
+  getContainer: (userId, runnableId, cb) ->
     runnableId = decodeId runnableId
-    projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error looking up runnable' } else
-        if not project then cb { code: 404, msg: 'runnable not found' } else
-          if project.owner.toString() isnt userId.toString() then cb { code: 403, msg: 'permission denied' } else
-            project.stop (err) ->
+    containers.findOne _id: runnableId, (err, container) ->
+      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+        if not container then cb new error { code: 404, msg: 'runnable not found' } else
+          if container.owner.toString() isnt userId.toString() then cb new error { code: 403, msg: 'permission denied' } else
+            container.getProcessState (err, state) ->
               if err then cb err else
-                project.containerState (err, state) ->
+                json = container.toJSON()
+                json._id = encodeId json._id
+                if json.parent then json.parent = encodeId json.parent
+                json.state = state
+                cb null, json
+
+  removeContainer: (userId, runnableId, cb) ->
+    runnableId = decodeId runnableId
+    remove = () ->
+      containers.destroy runnableId, (err) ->
+        if err then cb err else cb()
+    containers.findOne _id: runnableId, (err, container) ->
+      if err then cb new error { code: 500, msg: 'error querying mongodb' } else
+        if not container then cb new error { code: 404, msg: 'runnable not found' } else
+          if container.owner.toString() is userId.toString() then remove() else
+            users.findUser _id: userId, (err, user) ->
+              if err then cb new error { code: 500, msg: 'error looking up user' } else
+                if not user then cb new error { code: 404, msg: 'user not found' } else
+                  if user.permission_level <= 1 then cb new error { code: 403, msg: 'permission denied' } else
+                    remove()
+
+  removeImage: (userId, runnableId, cb) ->
+    runnableId = decodeId runnableId
+    remove = () ->
+      images.destroy runnableId, (err) ->
+        if err then cb err else cb()
+    images.findOne _id: runnableId, (err, image) ->
+      if err then cb new error { code: 500, msg: 'error querying mongodb' } else
+        if not image then cb new error { code: 404, msg: 'runnable not found' } else
+          if image.owner.toString() is userId.toString() then remove() else
+            users.findUser _id: userId, (err, user) ->
+              if err then cb new error { code: 500, msg: 'error looking up user' } else
+                if not user then cb new error { code: 404, msg: 'user not found' } else
+                  if user.permission_level <= 1 then cb new error { code: 403, msg: 'permission denied' } else
+                    for vote in user.votes
+                      if vote.runnable.toString() is image._id.toString()
+                        vote.remove()
+                   remove()
+
+  updateName: (userId, runnableId, newName, cb) ->
+    runnableId = decodeId runnableId
+    containers.findOne _id: runnableId, (err, container) ->
+      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+        if not container then cb new error { code: 404, msg: 'runnable not found' } else
+          if container.owner.toString() isnt userId.toString() then cb new error { code: 403, msg: 'permission denied' } else
+            container.name = newName;
+            container.save (err) ->
+              if err then cb new error { code: 500, msg: 'error saving runnable to mongodb'} else
+                cb();
+
+  updateImage: (userId, runnableId, from, cb) ->
+    runnableId = decodeId runnableId
+    from = decodeId from
+    images.findOne _id: runnableId, (err, image) ->
+      if err then cb new error { code: 500, msg: 'error looking up runnable in mongodb' } else
+        if not image then cb new error { code: 404, msg: 'Published runnable does not exist' } else
+          containers.findOne _id: from, (err, container) ->
+            if err then cb new error { code: 500, msg: 'Error looking up container to save from in mongodb' } else
+              if not container then cb new error { code: 403, msg: 'source container to copy from does not exist' } else
+                image.updateFromContainer container, (err, image) ->
                   if err then cb err else
-                    json_project = project.toJSON()
-                    json_project._id = encodeId json_project._id
-                    if json_project.parent then json_project.parent = encodeId json_project.parent
-                    json_project.state = state
-                    cb null, json_project
+                    cb null, image
+
+  getImage: (runnableId, cb) ->
+    runnableId = decodeId runnableId
+    images.findOne _id: runnableId, (err, image) ->
+      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+        if not image then cb new error { code: 404, msg: 'runnable not found' } else
+          image.getProcessState (err, state) ->
+            if err then cb err else
+              json_project = image.toJSON()
+              json_project._id = encodeId json_project._id
+              if json_project.parent then json_project.parent = encodeId json_project.parent
+              json_project.state = state
+              cb null, json_project
+
+  startContainer: (userId, runnableId, cb) ->
+    runnableId = decodeId runnableId
+    containers.findOne _id: runnableId, (err, container) ->
+      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+        if not container then cb new error { code: 404, msg: 'runnable not found' } else
+          if container.owner.toString() isnt userId.toString() then cb new error { code: 403, msg: 'permission denied' } else
+            container.getProcessState (err, state) ->
+              if err then cb err else
+                response = (state) ->
+                  json_project = container.toJSON()
+                  json_project._id = encodeId json_project._id
+                  if json_project.parent then json_project.parent = encodeId json_project.parent
+                  json_project.state = state
+                  cb null, json_project
+                if state.running then response state else
+                  container.start (err) ->
+                    if err then cb err else
+                      container.getProcessState (err, state) ->
+                        if err then cb err else
+                          response state
+
+  stopContainer: (userId, runnableId, cb) ->
+    runnableId = decodeId runnableId
+    containers.findOne _id: runnableId, (err, container) ->
+      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+        if not container then cb new error { code: 404, msg: 'runnable not found' } else
+          if container.owner.toString() isnt userId.toString() then cb new error { code: 403, msg: 'permission denied' } else
+            container.getProcessState (err, state) ->
+              if err then cb err else
+                response = (state) ->
+                  json_project = container.toJSON()
+                  json_project._id = encodeId json_project._id
+                  if json_project.parent then json_project.parent = encodeId json_project.parent
+                  json_project.state = state
+                  cb null, json_project
+                if not state.running then response state else
+                  container.stop (err) ->
+                    if err then cb err else
+                      container.getProcessState (err, state) ->
+                        if err then cb err else
+                          response state
 
   getVotes: (runnableId, cb) ->
     runnableId = decodeId runnableId
     users.find('votes.runnable': runnableId).count().exec (err, count) ->
-      if err then cb { code: 500, msg: 'error counting votes in mongodb' } else
+      if err then cb new error { code: 500, msg: 'error counting votes in mongodb' } else
         cb null, { count: count - 1 }
+
+  vote: (userId, runnableId, cb) ->
+    runnableId = decodeId runnableId
+    images.isOwner userId, runnableId, (err, owner) ->
+      if err then cb err else
+        if owner then cb new error { code: 403, msg: 'cannot vote for own runnables' } else
+          users.findOne _id: userId, (err, user) ->
+            if err then cb new error { code: 500, msg: 'error looking up user in mongodb' } else
+              if not user then cb new error { code: 403, msg: 'user not found' } else
+                user.addVote runnableId, cb
 
   listAll: (sortByVotes, limit, page, cb) ->
     if not sortByVotes
-      projects.find().skip(page*limit).limit(limit).exec (err, results) ->
-        if err then cb { code: 500, msg: 'error querying mongodb' } else
+      images.find().skip(page*limit).limit(limit).exec (err, results) ->
+        if err then cb new error { code: 500, msg: 'error querying mongodb' } else
           cb null, arrayToJSON results
     else
       users.aggregate voteSortPipeline(limit, limit*page), (err, results) ->
-        if err then cb { code: 500, msg: 'error aggragating votes in mongodb' } else
+        if err then cb new error { code: 500, msg: 'error aggragating votes in mongodb' } else
           async.map results, (result, cb) ->
-            projects.findOne _id: result._id, (err, runnable) ->
-              if err then cb { code: 500, msg: 'error retrieving project from mongodb' } else
+            images.findOne _id: result._id, (err, runnable) ->
+              if err then cb new error { code: 500, msg: 'error retrieving image from mongodb' } else
                 runnable.votes = result.number - 1
                 cb null, runnable
           , (err, results) ->
@@ -156,19 +225,19 @@ Runnables =
 
   listFiltered: (query, sortByVotes, limit, page, cb) ->
       if not sortByVotes
-        projects.find(query).skip(page*limit).limit(limit).exec (err, results) ->
-          if err then cb { code: 500, msg: 'error querying mongodb' } else
+        images.find(query).skip(page*limit).limit(limit).exec (err, results) ->
+          if err then cb new error { code: 500, msg: 'error querying mongodb' } else
             cb null, arrayToJSON results
       else
-        projects.find query, (err, selected) ->
+        images.find query, (err, selected) ->
           filter = [ ]
-          for project in selected
-            filter.push project._id
+          for image in selected
+            filter.push image._id
           users.aggregate voteSortPipelineFiltered(limit, limit*page, filter), (err, results) ->
-            if err then cb { code: 500, msg: 'error aggragating votes in mongodb' } else
+            if err then cb new error { code: 500, msg: 'error aggragating votes in mongodb' } else
               async.map results, (result, cb) ->
-                projects.findOne { _id: result._id }, (err, runnable) ->
-                  if err then cb { code: 500, msg: 'error retrieving project from mongodb' } else
+                images.findOne { _id: result._id }, (err, runnable) ->
+                  if err then cb new error { code: 500, msg: 'error retrieving image from mongodb' } else
                     runnable.votes = result.number - 1
                     cb null, runnable
               , (err, results) ->
@@ -181,203 +250,161 @@ Runnables =
                     json
                   cb null, result
 
-  getComments: (runnableId, fetchUsers, cb) ->
-    runnableId = decodeId runnableId
-    if fetchUsers
-      projects.findOne(_id: runnableId).populate('comments.user', 'email username').exec (err, project) ->
-        if err then cb { code: 500, msg: 'error looking up runnable' } else
-          if not project then cb { code: 404, msg: 'runnable not found' } else
-            cb null, commentsToJSON project.comments
-    else
-      projects.findOne _id: runnableId, (err, project) ->
-        if err then cb { code: 500, msg: 'error looking up runnable' } else
-          if not project then cb { code: 404, msg: 'runnable not found' } else
-            cb null, project.comments
-
-  getComment: (runnableId, fetchUser, commentId, cb) ->
-    runnableId = decodeId runnableId
-    if fetchUser
-      projects.findOne(_id: runnableId).populate('comments.user', 'email username').exec (err, project) ->
-        if err then cb { code: 500, msg: 'error looking up runnable' } else
-          if not project then cb { code: 404, msg: 'runnable not found' } else
-            comment = project.comments.id commentId
-            if not comment then cb { code: 404, msg: 'comment not found' } else
-              json_comment = comment.user.toJSON()
-              json_comment.text = comment.text
-              delete json_comment.email
-              cb null, json_comment
-    else
-      projects.findOne _id: runnableId, (err, project) ->
-        if err then cb { code: 500, msg: 'error looking up runnable' } else
-          if not project then cb { code: 404, msg: 'runnable not found' } else
-            comment = project.comments.id commentId
-            if not comment then cb { code: 404, msg: 'comment not found' } else
-              cb null, comment
-
-  addComment: (userId, runnableId, text, cb) ->
-    runnableId = decodeId runnableId
-    projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error looking up runnable' } else
-        if not project then cb { code: 404, msg: 'runnable not found' } else
-          project.comments.push
-            user: userId
-            text: text
-          commentId = project.comments[project.comments.length-1]._id
-          project.save (err) ->
-            if err then cb { code: 500, msg: 'error saving comment' } else
-              cb null, { user: userId, text: text, _id: commentId }
-
-  removeComment: (userId, runnableId, commentId, cb) ->
-    runnableId = decodeId runnableId
-    projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error looking up runnable' } else
-        if not project then cb { code: 404, msg: 'runnable not found' } else
-          remove = () ->
-            project.comments.id(commentId).remove()
-            project.save (err) ->
-              if err then cb { code: 500, msg: 'error removing comment from mongodb' } else
-                cb()
-          if project.comments.id(commentId).user.toString() is userId.toString() then remove() else
-            users.findUser _id: userId, (err, user) ->
-              if err then cb err else
-                if user.permission_level > 1 then remove() else
-                  cb { code: 403, msg: 'permission denied' }
-
   getTags: (runnableId, cb) ->
     runnableId = decodeId runnableId
-    projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error looking up runnable' } else
-        if not project then cb { code: 404, msg: 'runnable not found' } else
-          cb null, project.tags
+    images.findOne _id: runnableId, (err, image) ->
+      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+        if not project then cb new error { code: 404, msg: 'runnable not found' } else
+          cb null, image.tags
 
   getTag: (runnableId, tagId, cb) ->
     runnableId = decodeId runnableId
-    projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error looking up runnable' } else
-        if not project then cb { code: 404, msg: 'runnable not found' } else
-          tag = project.tags.id tagId
-          if not tag then cb { code: 404, msg: 'tag not found' } else
+    images.findOne _id: runnableId, (err, image) ->
+      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+        if not image then cb new error { code: 404, msg: 'runnable not found' } else
+          tag = image.tags.id tagId
+          if not tag then cb new error { code: 404, msg: 'tag not found' } else
             cb null, tag
 
   addTag: (userId, runnableId, text, cb) ->
-    runnableId = decodeId runnableId
-    projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error looking up runnable' } else
-        if not project then cb { code: 404, msg: 'runnable not found' } else
-          if project.owner.toString() isnt userId.toString()
-            users.findUser _id: userId, (err, user) ->
-              if err then cb { code: 500, 'error looking up user' } else
-                if not user then cb { code: 500, 'user not found' } else
-                  if user.permission_level < 2 then cb { code: 403, msg: 'permission denied' } else
-                    project.tags.push name: text
-                    tagId = project.tags[project.tags.length-1]._id
-                    project.save (err) ->
-                      if err then cb { code: 500, msg: 'error saving tag' } else
+    users.findUser _id: userId, (err, user) ->
+      if err then cb new error { code: 500, msg: 'error looking up user' } else
+        if not user then cb new error { code: 403, msg: 'user not found' } else
+          if user.permission_level < 1 then cb new error { code: 403, msg: 'permission denied' } else
+            runnableId = decodeId runnableId
+            images.findOne _id: runnableId, (err, image) ->
+              if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+                if not image then cb new error { code: 404, msg: 'runnable not found' } else
+                  if image.owner.toString() isnt userId.toString()
+                    if user.permission_level < 2 then cb new error { code: 403, msg: 'permission denied' } else
+                      image.tags.push name: text
+                      tagId = image.tags[image.tags.length-1]._id
+                      image.save (err) ->
+                        if err then cb new error { code: 500, msg: 'error saving tag' } else
+                          cb null, { name: text, _id: tagId }
+                  else
+                    image.tags.push name: text
+                    tagId = image.tags[image.tags.length-1]._id
+                    image.save (err) ->
+                      if err then cb new error { code: 500, msg: 'error saving tag' } else
                         cb null, { name: text, _id: tagId }
-          else
-            project.tags.push name: text
-            tagId = project.tags[project.tags.length-1]._id
-            project.save (err) ->
-              if err then cb { code: 500, msg: 'error saving tag' } else
-                cb null, { name: text, _id: tagId }
 
   removeTag: (userId, runnableId, tagId, cb) ->
     runnableId = decodeId runnableId
-    projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error looking up runnable' } else
-        if not project then cb { code: 404, msg: 'runnable not found' } else
-          if project.owner.toString() isnt userId.toString()
+    images.findOne _id: runnableId, (err, image) ->
+      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+        if not image then cb new error { code: 404, msg: 'runnable not found' } else
+          if image.owner.toString() isnt userId.toString()
             user = users.findOne _id: userId, (err, user) ->
-              if err then cb { code: 500, msg: 'error looking up user' } else
-                if not user then cb { code: 500, msg: 'user not found' } else
-                  if user.permission_level < 2 then cb { code: 403, msg: 'permission denied' } else
-                    project.tags.id(tagId).remove()
-                    project.save (err) ->
-                      if err then cb { code: 500, msg: 'error removing tag from mongodb' } else cb()
+              if err then cb new error { code: 500, msg: 'error looking up user' } else
+                if not user then cb new error { code: 500, msg: 'user not found' } else
+                  if user.permission_level < 2 then cb new error { code: 403, msg: 'permission denied' } else
+                    image.tags.id(tagId).remove()
+                    image.save (err) ->
+                      if err then cb new error { code: 500, msg: 'error removing tag from mongodb' } else cb()
           else
-            project.tags.id(tagId).remove()
-            project.save (err) ->
-              if err then cb { code: 500, msg: 'error removing tag from mongodb' } else cb()
+            image.tags.id(tagId).remove()
+            image.save (err) ->
+              if err then cb new error { code: 500, msg: 'error removing tag from mongodb' } else cb()
 
   listFiles: (runnableId, content, dir, default_tag, path, cb) ->
     runnableId = decodeId runnableId
-    projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error looking up runnable' } else
-        if not project then cb { code: 404, msg: 'runnable not found' } else
-          project.listFiles content, dir, default_tag, path, cb
+    containers.findOne _id: runnableId, (err, container) ->
+      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+        if not container then cb new error { code: 404, msg: 'runnable not found' } else
+          container.listFiles content, dir, default_tag, path, cb
+
+  # Praful: Both these methods are shimmmed to always get a running container
+  # this logic needs to be replaced to get the projects
+  # right container to interact with these files
+  readDir: (runnableId, path, cb) ->
+    runnableId = decodeId runnableId
+    containers.findOne (err, container) ->
+    # containers.findOne _id: runnableId, (err, container) ->
+      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+        if not container then cb new error { code: 404, msg: 'runnable not found' } else
+          container.readDir path, cb
+
+  changeFile: (runnableId, path, content, cb) ->
+    runnableId = decodeId runnableId
+    containers.findOne (err, container) ->
+    # containers.findOne _id: runnableId, (err, container) ->
+      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+        if not container then cb new error { code: 404, msg: 'runnable not found' } else
+          container.changeFile path, content, cb
 
   createFile: (userId, runnableId, name, path, content, cb) ->
     runnableId = decodeId runnableId
-    projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error looking up runnable' } else
-        if not project then cb { code: 404, msg: 'runnable not found' } else
-          if project.owner.toString() isnt userId.toString() then cb { code: 403, msg: 'permission denied' } else
-            project.createFile name, path, content, cb
+    containers.findOne _id: runnableId, (err, container) ->
+      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+        if not container then cb new error { code: 404, msg: 'runnable not found' } else
+          if container.owner.toString() isnt userId.toString() then cb new error { code: 403, msg: 'permission denied' } else
+            container.createFile name, path, content, cb
 
   updateFile: (userId, runnableId, fileId, content, cb) ->
     runnableId = decodeId runnableId
-    projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error looking up runnable' } else
-        if not project then cb { code: 404, msg: 'runnable not found' } else
-          if project.owner.toString() isnt userId.toString() then cb { code: 403, msg: 'permission denied' } else
-            project.updateFile fileId, content, cb
+    containers.findOne _id: runnableId, (err, container) ->
+      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+        if not container then cb new error { code: 404, msg: 'runnable not found' } else
+          if container.owner.toString() isnt userId.toString() then cb new error { code: 403, msg: 'permission denied' } else
+            container.updateFile fileId, content, cb
 
   defaultFile: (userId, runnableId, fileId, cb) ->
     runnableId = decodeId runnableId
-    projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error looking up runnable' } else
-        if not project then cb { code: 404, msg: 'runnable not found' } else
-          if project.owner.toString() isnt userId.toString() then cb { code: 403, msg: 'permission denied' } else
-            project.tagFile fileId, cb
+    containers.findOne _id: runnableId, (err, container) ->
+      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+        if not container then cb new error { code: 404, msg: 'runnable not found' } else
+          if container.owner.toString() isnt userId.toString() then cb new error { code: 403, msg: 'permission denied' } else
+            container.tagFile fileId, cb
 
   renameFile: (userId, runnableId, fileId, name, cb) ->
     runnableId = decodeId runnableId
-    projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error looking up runnable' } else
-        if not project then cb { code: 404, msg: 'runnable not found' } else
-          if project.owner.toString() isnt userId.toString() then cb { code: 403, msg: 'permission denied' } else
-            project.renameFile fileId, name, cb
+    containers.findOne _id: runnableId, (err, container) ->
+      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+        if not container then cb new error { code: 404, msg: 'runnable not found' } else
+          if container.owner.toString() isnt userId.toString() then cb new error { code: 403, msg: 'permission denied' } else
+            container.renameFile fileId, name, cb
 
   moveFile: (userId, runnableId, fileId, path, cb) ->
     runnableId = decodeId runnableId
-    projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error looking up runnable' } else
-        if not project then cb { code: 404, msg: 'runnable not found' } else
-          if project.owner.toString() isnt userId.toString() then cb { code: 403, msg: 'permission denied' } else
-            project.moveFile fileId, path, cb
+    containers.findOne _id: runnableId, (err, container) ->
+      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+        if not container then cb new error { code: 404, msg: 'runnable not found' } else
+          if container.owner.toString() isnt userId.toString() then cb new error { code: 403, msg: 'permission denied' } else
+            container.moveFile fileId, path, cb
 
   createDirectory: (userId, runnableId, name, path, cb) ->
     runnableId = decodeId runnableId
-    projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error looking up runnable' } else
-        if not project then cb { code: 404, msg: 'runnable not found' } else
-          if project.owner.toString() isnt userId.toString() then cb { code: 403, msg: 'permission denied' } else
-            project.createDirectory name, path, cb
+    containers.findOne _id: runnableId, (err, container) ->
+      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+        if not container then cb new error { code: 404, msg: 'runnable not found' } else
+          if container.owner.toString() isnt userId.toString() then cb new error { code: 403, msg: 'permission denied' } else
+            container.createDirectory name, path, cb
 
   readFile: (runnableId, fileId, cb) ->
     runnableId = decodeId runnableId
-    projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error looking up runnable' } else
-        if not project then cb { code: 404, msg: 'runnable not found' } else
-          file = project.files.id fileId
-          if not file then cb { code: 404, msg: 'file not found' } else
-            project.readFile fileId, cb
+    containers.findOne _id: runnableId, (err, container) ->
+      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+        if not container then cb new error { code: 404, msg: 'runnable not found' } else
+          file = container.files.id fileId
+          if not file then cb new error { code: 404, msg: 'file not found' } else
+            container.readFile fileId, cb
 
   deleteFile: (runnableId, fileId, recursive, cb) ->
     runnableId = decodeId runnableId
-    projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error looking up runnable' } else
-        if not project then cb { code: 404, msg: 'runnable not found' } else
-          file = project.files.id fileId
-          if not file then cb { code: 404, msg: 'file not found' } else
-            project.deleteFile fileId, recursive, cb
+    containers.findOne _id: runnableId, (err, container) ->
+      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+        if not container then cb new error { code: 404, msg: 'runnable not found' } else
+          file = container.files.id fileId
+          if not file then cb new error { code: 404, msg: 'file not found' } else
+            container.deleteFile fileId, recursive, cb
 
   deleteAllFiles: (runnableId, cb) ->
     runnableId = decodeId runnableId
-    projects.findOne _id: runnableId, (err, project) ->
-      if err then cb { code: 500, msg: 'error looking up runnable' } else
-        if not project then cb { code: 404, msg: 'runnable not found' } else
-          project.deleteAllFiles cb
+    containers.findOne _id: runnableId, (err, container) ->
+      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+        if not container then cb new error { code: 404, msg: 'runnable not found' } else
+          container.deleteAllFiles cb
 
 
 module.exports = Runnables

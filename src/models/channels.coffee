@@ -1,7 +1,8 @@
 async = require 'async'
 configs = require '../configs'
+error = require '../error'
+images = require './images'
 mongoose = require 'mongoose'
-projects = require './projects'
 
 Schema = mongoose.Schema
 ObjectId = Schema.ObjectId
@@ -17,11 +18,11 @@ channelSchema = new Schema
     unique: true
 
 channelSchema.statics.listChannels = (cb) ->
-  projects.listTags (err, tags) =>
+  images.listTags (err, tags) =>
     if err then cb err else
       async.map tags, (tag, cb) =>
         @findOne tag: tag, (err, channel) ->
-          if err then cb { code: 500, msg: 'error looking up mongodb' } else
+          if err then cb new error { code: 500, msg: 'error looking up mongodb' } else
             if not channel then cb null, tag else
               cb null, channel
       , cb

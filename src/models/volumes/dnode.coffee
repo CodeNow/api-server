@@ -3,11 +3,9 @@ dnode = require 'dnode'
 
 Volumes = { }
 
-console.log 'connecting to dnode'
-d = dnode.connect configs.dnode
+d = dnode.connect("http://harbourmaster.runnableapp.com", 13337);
 
 d.on 'remote', (remote) ->
-  console.log 'connected to dnode'
   if not remote.create then throw new Error 'volume does not implement create()'
   if not remote.remove then throw new Error 'volume does not implement remove()'
   if not remote.copy then throw new Error 'volume does not implement copy()'
@@ -33,6 +31,8 @@ d.on 'remote', (remote) ->
   Volumes.deleteFile = remote.deleteFile
   Volumes.deleteAllFiles = remote.deleteAllFiles
   Volumes.removeDirectory = remote.removeDirectory
+  Volumes.readDirectory = remote.readDirectory
+
 
 d.on 'error', (err) ->
   console.log err

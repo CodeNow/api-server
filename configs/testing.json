@@ -8,10 +8,5 @@
   "docker": "http://localhost:4243",
   "shortProjectIds": true,
   "volumesPath": "{RAND_DIR}/volumes",
-  "runnables":  {
-    "node.js": {
-      "image": "runnable",
-      "name": "hello node.js"
-    }
-  }
+  "showStack": true
 }

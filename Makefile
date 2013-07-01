@@ -11,7 +11,7 @@ install:
 start:
 	@node server.js
 watch:
-	@./node_modules/.bin/coffee -w -o lib src & ./node_modules/.bin/nodemon -w lib -w configs -q lib/index.js
+	@./node_modules/.bin/coffee -w -o lib src & ./node_modules/.bin/nodemon -w lib -w configs -q server.js
 testwatch:
 ifdef grep
 		@./node_modules/.bin/coffee -w -o lib src & NODE_ENV=testing ./node_modules/.bin/nodemon --delay 3 -w lib -w test -w configs -q ./node_modules/.bin/mocha --reporter spec --grep ${grep}

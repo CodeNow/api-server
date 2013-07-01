@@ -1,5 +1,15 @@
 ![Alt text](https://circleci.com/gh/CodeNow/api-server.png?circle-token=f2016db7bc53765c63d03a92fcfdf20330233a1f)
 
+Getting started
+==========
+
+* Setup harbourmaster, runnable-web and api-server
+* Create a username/password
+* Create your first Runnable like this
+	curl -X POST -H "runnable-token:2cfa32ca-a6ba-4113-857c-312b65b441b5" http://localhost:3030/runnables
+
+	You can find your access token in the console stream of runnable-web
+
 api-server
 ==========
 
@@ -13,6 +23,18 @@ api-server
 * api deals with strictly json-based data. doesn't know about html
 * ability to fully control a user and their runnables via an api call
 * primarly a REST api, but web sockets enabled where required
+
+
+forking model
+=============
+
+* no forking. there is a single create function that takes a runnable id to fork from
+* runnable to be forked from (parent) must have an image associated with it, if not error
+* new runnable does not have an image set initially defined
+* save will create an image from the runnable's container
+  * if image exists, it will overwrite it, otherwise it will create a new one
+* runnables without an image, that were not accessed within N days (configurable timeout) are deleted
+  * access includes a file operation, start/stop/restart operation.
 
 rendr is the client
 ===================
