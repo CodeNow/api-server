@@ -5,13 +5,8 @@
   "port": 3000,
   "maxPageLimit": 200,
   "defaultPageLimit": 25,
-  "docker": "http://54.215.13.107",
+  "docker": "http://54.215.13.107:4243",
   "shortProjectIds": true,
   "volumesPath": "{RAND_DIR}/volumes",
-  "runnables":  {
-    "node.js": {
-      "image": "runnable",
-      "name": "hello node.js"
-    }
-  }
+  "showStack": true
 }

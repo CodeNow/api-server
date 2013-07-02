@@ -20,10 +20,3 @@ RUN apt-get -y install mongodb-10gen
 RUN apt-get -y install python-software-properties python g++ make vim git wget
 RUN wget -N http://nodejs.org/dist/node-latest.tar.gz
 RUN tar xzvf node-latest.tar.gz && cd node-v* && ./configure && make && make install
-
-RUN mkdir /runnable
-ADD ./src/server.js /root/server.js
-ADD ./src/package.json /root/package.json
-RUN cd /root; npm install
-EXPOSE 80
-CMD cd /root; npm start

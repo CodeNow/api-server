@@ -5,15 +5,10 @@
   "port": 3030,
   "maxPageLimit": 200,
   "defaultPageLimit": 25,
-  "docker": "http://localhost:4243",
+  "docker": "http://harbourmaster.runnableapp.dev:3000",
   "shortProjectIds": true,
   "logRequests": true,
   "throwErrors": true,
   "volumesPath": "{HOME_DIR}/.runnable/volumes",
-  "runnables":  {
-    "node.js": {
-      "image": "runnable",
-      "name": "hello node.js"
-    }
-  }
+  "showStack": true
 }
