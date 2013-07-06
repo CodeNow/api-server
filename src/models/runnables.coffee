@@ -38,19 +38,16 @@ Runnables =
     images.findOne _id: from, (err, image) ->
       if err then cb err else
         if not image then cb new error { code: 400, msg: 'could not find source image to fork from' } else
-          containers.findOne { owner: userId, parent: from }, (err, container) ->
-            if err then cb new error { code: 500, msg: 'error querying for existing container' } else
-              if container then cb new error { code: 403, msg: 'already editing a project from this parent' } else
-                containers.create userId, image, (err, container) ->
-                  if err then cb err else
-                    container.getProcessState (err, state) ->
-                      if err then cb err else
-                        json_container = container.toJSON()
-                        if json_container.parent then json_container.parent = encodeId json_container.parent
-                        if json_container.target then json_container.target = encodeId json_container.target
-                        json_container.state = state
-                        json_container._id = encodeId container._id
-                        cb null, json_container
+          containers.create userId, image, (err, container) ->
+            if err then cb err else
+              container.getProcessState (err, state) ->
+                if err then cb err else
+                  json_container = container.toJSON()
+                  if json_container.parent then json_container.parent = encodeId json_container.parent
+                  if json_container.target then json_container.target = encodeId json_container.target
+                  json_container.state = state
+                  json_container._id = encodeId container._id
+                  cb null, json_container
 
   listContainers: (userId, parent, cb) ->
     query = { owner: userId }
@@ -217,10 +214,18 @@ Runnables =
         if err then cb new error { code: 500, msg: 'error aggragating votes in mongodb' } else
           async.map results, (result, cb) ->
             images.findOne _id: result._id, (err, runnable) ->
-              if err then cb new error { code: 500, msg: 'error retrieving image from mongodb' } else
+              if err
+                cb new error { code: 500, msg: 'error retrieving image from mongodb' }
+              else if !runnable
+                cb()
+              else
                 runnable.votes = result.number - 1
                 cb null, runnable
           , (err, results) ->
+            console.log(results)
+            results = results.filter (item) ->
+              (item != null || item != undefined) #filter out null/undef runnables
+            console.log(results.length)
             if err then cb err else
               result = for item in results
                 json = item.toJSON()

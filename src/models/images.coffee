@@ -9,7 +9,7 @@ path = require 'path'
 mongoose = require 'mongoose'
 request = require 'request'
 sa = require 'superagent'
-volumes = require './volumes/disk'
+volumes = require "./volumes/#{configs.volume}"
 
 docker = dockerjs host: configs.docker
 
@@ -77,6 +77,7 @@ imageSchema.statics.createFromDisk = (owner, name, cb) ->
       image.tags.push tag
     child = cp.spawn 'tar', [ '-c', '--directory', "#{runnablePath}/#{name}", '.' ]
     req = request.post
+      timeout: 60000
       url: "#{configs.docker}/v1.3/build"
       headers:
         'content-type': 'application/tar'
@@ -89,16 +90,21 @@ imageSchema.statics.createFromDisk = (owner, name, cb) ->
               image.docker_id = image._id.toString()
               image.save (err) ->
                 if err then new error { code: 500, msg: 'error saving image to mongodb' } else
-                  volumes.create image._id, (err) ->
-                    async.forEach runnable.files, (file, cb) ->
-                      fs.readFile "#{runnablePath}/#{name}/#{file.content}", 'base64', (err, content) ->
-                        if err then cb new error { code: 500, msg: 'error reading source file for building image' } else
-                          volumes.createFile image._id, file.name, file.path, content, (err) ->
+                  volumes.create image._id, image.file_root, (err) ->
+                    if err then cb err else
+                      async.map runnable.files, (file, cb) ->
+                        fs.readFile "#{runnablePath}/#{name}/#{file.content}", 'base64', (err, content) ->
+                          if err then cb new error { code: 500, msg: 'error reading source file for building image' } else
+                            cb null,
+                              name: file.name
+                              path: file.path
+                              default: file.default
+                              content: content
+                      , (err, files) ->
+                        if err then cb err else
+                          volumes.createFiles image._id, image.file_root, files, (err) ->
                             if err then cb new error { code: 500, msg: 'error writing source files to disk' } else
-                              cb()
-                    , (err) ->
-                      if err then cb err else
-                        cb null, image
+                              cb null, image
     child.stdout.pipe req
 
 imageSchema.statics.create = (container, cb) ->
@@ -123,7 +129,7 @@ imageSchema.statics.create = (container, cb) ->
       image.docker_id = result.Id
       image.save (err) ->
         if err then cb new error { code: 500, msg: 'error saving image metadata to mongodb' } else
-          volumes.copy container._id, image._id, (err) ->
+          volumes.copy container.long_docker_id, image._id, image.file_root, (err) ->
             if err then cb err else
               cb null, image
 

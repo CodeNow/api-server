@@ -2,5 +2,5 @@
 --compilers coffee:coffee-script
 --bail
 --require should
---slow 30000
---timeout 60000
+--slow 120000
+--timeout 240000

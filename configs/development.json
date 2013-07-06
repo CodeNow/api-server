@@ -5,10 +5,13 @@
   "port": 3030,
   "maxPageLimit": 200,
   "defaultPageLimit": 25,
-  "docker": "http://harbourmaster.runnableapp.dev:3000",
+  "docker": "http://harbourmaster.runnableapp.dev",
   "shortProjectIds": true,
   "logRequests": true,
   "throwErrors": true,
-  "volumesPath": "{HOME_DIR}/.runnable/volumes",
-  "showStack": true
+  "volume": "dnode",
+  "dnode_host": "http://harbourmaster.runnableapp.dev",
+  "dnode_port": 13337,
+  "showStack": true,
+  "logStack" : true
 }
