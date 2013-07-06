@@ -3,7 +3,6 @@ async = require 'async'
 configs = require '../lib/configs'
 helpers = require './helpers'
 sa = require 'superagent'
-require('source-map-support').install()
 
 describe 'pagination api', ->
 
