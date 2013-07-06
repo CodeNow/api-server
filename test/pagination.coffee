@@ -170,6 +170,56 @@ describe 'pagination api', ->
                         res.body.length.should.equal 1
                         done()
 
+  it 'should still be able to ::paginate all runnables sorted by votes after a runnable has been deleted', (done) ->
+    helpers.authedUser (err, user) ->
+      if err then done err else
+        runnables = [ ]
+        async.whilst () ->
+          runnables.length < 5
+        , (cb) ->
+          user.post("http://localhost:#{configs.port}/runnables")
+            .end (err, res) ->
+              if err then cb err else
+                res.should.have.status 201
+                res.body.should.have.property '_id'
+                runnableId = res.body._id
+                runnables.push res.body._id
+                numVotes = 0
+                async.whilst () ->
+                  numVotes < runnables.length
+                , (cb) ->
+                  numVotes++
+                  helpers.authedUser (err, user2) ->
+                    if err then cb err else
+                      user2.post("http://localhost:#{configs.port}/users/me/votes")
+                        .set('content-type', 'application/json')
+                        .send(JSON.stringify(runnable: runnableId))
+                        .end (err, res) ->
+                          if err then cb err else
+                            res.should.have.status 201
+                            cb()
+                , cb
+        , (err) ->
+          if err then done err else
+            user.del("http://localhost:#{configs.port}/runnables/#{runnables[0]}")
+              .end (err, res) ->
+                if err then done err else
+                  res.should.have.status 200
+                  res.body.should.have.property 'message', 'runnable deleted'
+                  user.get("http://localhost:#{configs.port}/runnables?sort=votes")
+                    .end (err, res) ->
+                      if err then done err else
+                        res.should.have.status 200
+                        res.body.should.be.a.array
+                        res.body.length.should.equal 8
+                        user.get("http://localhost:#{configs.port}/runnables?sort=votes&page=2&limit=1")
+                          .end (err, res) ->
+                            if err then done err else
+                              res.should.have.status 200
+                              res.body.should.be.a.array
+                              res.body.length.should.equal 1
+                              done()
+
   it 'should have a default ::paginate of configs.defaultPageLimit when listing when', (done) ->
     helpers.authedUser (err, user) ->
       if err then done err else
