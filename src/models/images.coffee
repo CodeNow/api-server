@@ -77,7 +77,7 @@ buildDockerImage = (fspath, tag, cb) ->
     qs:
       t: tag
   , (err, res, body) ->
-      if err then cb new error { code: 500, msg: 'error building image from Dockerfile' } else
+      if err then cb new error { code: 500, msg: 'error building image from Dockerfile', err:err } else
         if res.statusCode isnt 200 then cb new error { code: res.status, msg: body } else
           if body.indexOf('Successfully built') is -1 then cb new error { code: 500, msg: 'could not build image from dockerfile' } else
             cb null, tag
@@ -92,15 +92,15 @@ syncDockerImage = (image, cb) ->
     PortSpecs: [ image.port.toString() ]
     Cmd: [ image.cmd ]
   , (err, res) ->
-    if err then cb new error { code: 500, msg: 'error creating container to sync files from' } else
+    if err then cb new error { code: 500, msg: 'error creating container to sync files from', err:err } else
       containerId = res.Id
       docker.inspectContainer containerId, (err, result) ->
-        if err then cb new error { code: 500, msg: 'error getting long container id to sync files from' } else
+        if err then cb new error { code: 500, msg: 'error getting long container id to sync files from', err:err } else
           long_docker_id = result.ID
           sync long_docker_id, image, (err) ->
             if err then cb err else
               docker.removeContainer containerId, (err) ->
-                if err then cb new error { code: 500, msg: 'error removing container files were synced from' } else
+                if err then cb new error { code: 500, msg: 'error removing container files were synced from', err:err } else
                   cb()
 
 imageSchema.statics.createFromDisk = (owner, name, sync, cb) ->
@@ -154,10 +154,10 @@ imageSchema.statics.createFromContainer = (container, cb) ->
       m: "#{container.parent} => #{image._id}"
       author: image.owner.toString()
   , (err, result) ->
-    if err then cb new error { code: 500, msg: 'error creating docker image' } else
+    if err then cb new error { code: 500, msg: 'error creating docker image', err:err } else
       image.docker_id = result.Id
       image.save (err) ->
-        if err then cb new error { code: 500, msg: 'error saving image metadata to mongodb' } else
+        if err then cb new error { code: 500, msg: 'error saving image metadata to mongodb', err:err } else
           cb null, image
 
 imageSchema.methods.updateFromContainer = (container, cb) ->
@@ -176,34 +176,35 @@ imageSchema.methods.updateFromContainer = (container, cb) ->
       m: "#{container.parent} => #{@_id}"
       author: @owner.toString()
   , (err, result) =>
-    if err then cb new error { code: 500, msg: 'error creating docker image' } else
+    if err then cb new error { code: 500, msg: 'error creating docker image', err:err } else
       @docker_id = result.Id
       @save (err) =>
-        if err then cb new error { code: 500, msg: 'error saving image metadata to mongodb' } else
+        if err then cb new error { code: 500, msg: 'error saving image metadata to mongodb', err:err } else
           cb null, @
 
 imageSchema.statics.destroy = (id, cb) ->
   @findOne _id: id, (err, image) =>
-    if err then cb new error { code: 500, msg: 'error looking up image in mongodb' } else
+    if err then cb new error { code: 500, msg: 'error looking up image in mongodb', err:err } else
       if not image then cb new error { code: 404, msg: 'image not found' } else
         req = docker.removeImage { id: image.docker_id }
         req.on 'error', (err) ->
           cb new error { code: 500, msg: 'error removing docker image' }
         req.on 'end', () =>
           @remove id, (err) ->
-            if err then cb new error { code: 500, msg: 'error removing image metadata from mongodb' } else
+            if err then cb new error { code: 500, msg: 'error removing image metadata from mongodb', err:err } else
               cb()
 
 imageSchema.statics.listTags = (cb) ->
   @find().distinct 'tags.name', (err, tagNames) ->
-    if err then cb new error { code: 500, msg: 'error retrieving project tags', err: err } else
+    if err then cb new error { code: 500, msg: 'error retrieving project tags', err: err, err:err } else
+      tagNames = tagNames.filter (name) -> (name != null || name != undefined)
       tags = tagNames.map (tag) ->
         name: tag, _id: tag
       cb null, tags
 
 imageSchema.statics.isOwner = (userId, runnableId, cb) ->
   @findOne _id: runnableId, (err, image) ->
-    if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+    if err then cb new error { code: 500, msg: 'error looking up runnable', err:err } else
       if not image then cb new error { code: 404, msg: 'runnable not found' } else
         cb null, image.owner.toString() is userId.toString()
 

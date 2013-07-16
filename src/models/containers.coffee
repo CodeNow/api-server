@@ -93,26 +93,26 @@ containerSchema.statics.create = (owner, image, cb) ->
           PortSpecs: [ container.port.toString() ]
           Cmd: [ container.cmd ]
         , (err, res) ->
-          if err then cb new error { code: 500, msg: 'error creating docker container' } else
+          if err then cb new error { code: 500, msg: 'error creating docker container', err:err } else
             container.docker_id = res.Id
             docker.inspectContainer container.docker_id, (err, result) ->
-              if err then cb new error { code: 500, msg: 'error getting container state' } else
+              if err then cb new error { code: 500, msg: 'error getting container state', err:err } else
                 container.long_docker_id = result.ID
                 container.save (err) ->
-                  if err then cb new error { code: 500, msg: 'error saving container metadata to mongodb' } else
+                  if err then cb new error { code: 500, msg: 'error saving container metadata to mongodb', err:err } else
                     cb null, container
 
 containerSchema.statics.destroy = (id, cb) ->
   @findOne { _id: id, deleted: undefined } , (err, container) =>
-    if err then cb new error { code: 500, msg: 'error looking up container metadata in mongodb' } else
+    if err then cb new error { code: 500, msg: 'error looking up container metadata in mongodb', err:err } else
       if not container then cb new error { code: 404, msg: 'container metadata not found' } else
         container.getProcessState (err, state) =>
           if err then cb err else
             remove = () =>
               docker.removeContainer container.docker_id, (err) =>
-                if err then cb new error { code: 500, msg: 'error removing container from docker' } else
+                if err then cb new error { code: 500, msg: 'error removing container from docker', err:err } else
                   @remove id, (err) ->
-                    if err then cb new error { code: 500, msg: 'error removing container metadata from mongodb' } else
+                    if err then cb new error { code: 500, msg: 'error removing container metadata from mongodb', err:err } else
                       cb()
             if state.running
               container.stop (err) =>
@@ -123,7 +123,7 @@ containerSchema.statics.destroy = (id, cb) ->
 
 containerSchema.methods.getProcessState = (cb) ->
   docker.inspectContainer @docker_id, (err, result) ->
-    if err then cb new error { code: 500, msg: 'error getting container state' } else
+    if err then cb new error { code: 500, msg: 'error getting container state', err:err } else
       cb null, running: result.State.Running
 
 containerSchema.methods.start = (cb) ->
@@ -132,12 +132,12 @@ containerSchema.methods.start = (cb) ->
     Binds: [
       "#{configs.volumesPath}/#{@long_docker_id}:#{@file_root}"
     ], (err, res) ->
-      if err then cb new error { code: 500, msg: 'error starting docker container' } else
+      if err then cb new error { code: 500, msg: 'error starting docker container', err:err } else
         cb()
 
 containerSchema.methods.stop = (cb) ->
   docker.stopContainer @docker_id, (err) ->
-    if err then cb new error { code: 500, msg: 'error stopping docker container' } else
+    if err then cb new error { code: 500, msg: 'error stopping docker container', err:err } else
       cb()
 
 containerSchema.methods.listFiles = (content, dir, default_tag, path, cb) ->
@@ -178,7 +178,7 @@ containerSchema.methods.createFile = (name, path, content, cb) ->
         content: content
       file = @files[@files.length-1]
       @save (err) ->
-        if err then cb new error { code: 500, msg: 'error saving file to mongodb' } else
+        if err then cb new error { code: 500, msg: 'error saving file to mongodb', err:err } else
           cb null, { _id: file._id, name: name, path: path }
 
 containerSchema.methods.updateFile = (fileId, content, cb) ->
@@ -188,7 +188,7 @@ containerSchema.methods.updateFile = (fileId, content, cb) ->
       if err then cb err else
         file.content = content
         @save (err) ->
-          if err then cb new error { code: 500, msg: 'error saving file to mongodb' } else
+          if err then cb new error { code: 500, msg: 'error saving file to mongodb', err:err } else
             cb null, file
 
 containerSchema.methods.renameFile = (fileId, newName, cb) ->
@@ -205,7 +205,7 @@ containerSchema.methods.renameFile = (fileId, newName, cb) ->
             if elem.path.indexOf(oldPath) is 0 and elem._id isnt file._id
               elem.path = elem.path.replace oldPath, newPath
         @save (err) ->
-          if err then cb new error { code: 500, msg: 'error updating filename in mongodb' } else
+          if err then cb new error { code: 500, msg: 'error updating filename in mongodb', err:err } else
             cb null, file
 
 containerSchema.methods.moveFile = (fileId, newPath, cb) ->
@@ -222,7 +222,7 @@ containerSchema.methods.moveFile = (fileId, newPath, cb) ->
             if elem.path.indexOf(oldPath) is 0 and elem._id isnt file._id
               elem.path = elem.path.replace oldPath, newPath
         @save (err) ->
-          if err then cb new error { code: 500, msg: 'error updating filename in mongodb' } else
+          if err then cb new error { code: 500, msg: 'error updating filename in mongodb', err:err } else
             cb null, file
 
 containerSchema.methods.createDirectory = (name, path, cb) ->
@@ -234,7 +234,7 @@ containerSchema.methods.createDirectory = (name, path, cb) ->
         dir: true
       file = @files[@files.length-1]
       @save (err) ->
-        if err then cb new error { code: 500, msg: 'error saving file meta-data to mongodb' } else
+        if err then cb new error { code: 500, msg: 'error saving file meta-data to mongodb', err:err } else
           cb null, file
 
 containerSchema.methods.readFile = (fileId, cb) ->
@@ -248,7 +248,7 @@ containerSchema.methods.tagFile = (fileId, cb) ->
     if file.dir then cb new error { code: 403, msg: 'cannot tag directory as default' } else
       file.default = true
       @save (err) ->
-        if err then cb new error { code: 500, msg: 'error writing to mongodb' } else
+        if err then cb new error { code: 500, msg: 'error writing to mongodb', err:err } else
          cb null, file
 
 containerSchema.methods.deleteAllFiles = (cb) ->
@@ -256,7 +256,7 @@ containerSchema.methods.deleteAllFiles = (cb) ->
     if err then cb err else
       @files = [ ]
       @save (err) ->
-        if err then cb new error { code: 500, msg: 'error removing files from mongodb' } else
+        if err then cb new error { code: 500, msg: 'error removing files from mongodb', err:err } else
           cb()
 
 containerSchema.methods.deleteFile = (fileId, recursive, cb) ->
@@ -268,7 +268,7 @@ containerSchema.methods.deleteFile = (fileId, recursive, cb) ->
           if err then cb err else
             file.remove()
             @save (err) ->
-              if err then cb new error { code: 500, msg: 'error removing file from mongodb' } else
+              if err then cb new error { code: 500, msg: 'error removing file from mongodb', err:err } else
                 cb()
     else
       volumes.removeDirectory @long_docker_id, @file_root, file.name, file.path, recursive, (err) =>
@@ -283,7 +283,7 @@ containerSchema.methods.deleteFile = (fileId, recursive, cb) ->
               elem.remove()
           file.remove()
           @save (err) ->
-            if err then cb new error { code: 500, msg: 'error removing file from mongodb' } else
+            if err then cb new error { code: 500, msg: 'error removing file from mongodb', err:err } else
               cb()
 
 module.exports = mongoose.model 'Containers', containerSchema

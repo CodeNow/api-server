@@ -55,12 +55,12 @@ userSchema.virtual('gravitar').get () ->
 userSchema.statics.createUser = (cb) ->
   user = new @
   user.save (err, user) =>
-    if err then cb new error { code: 500, msg: 'error creating user' } else
+    if err then cb new error { code: 500, msg: 'error creating user', err:err } else
       cb null, user
 
 userSchema.statics.findUser = (params, cb) ->
   @findOne params, (err, user) ->
-    if err then cb new error { code: 500, msg: 'error looking up user' } else
+    if err then cb new error { code: 500, msg: 'error looking up user', err:err } else
       if user
         userLifetime = (new Date()).getTime() - user.created.getTime()
         if userLifetime >= configs.cookieExpires and user.permission_level is 0
@@ -69,12 +69,12 @@ userSchema.statics.findUser = (params, cb) ->
 
 userSchema.statics.removeUser = (userId, cb) ->
   @remove { _id: userId }, (err) ->
-    if err then cb new error { code: 500, msg: 'error removing user' } else cb()
+    if err then cb new error { code: 500, msg: 'error removing user', err:err } else cb()
 
 userSchema.statics.loginUser = (login, password, cb) ->
   query = { $or: [ {username: login}, {email: login} ] }
   @findOne query,  (err, user) ->
-    if err then cb new error { code: 500, msg: 'error looking up user' } else
+    if err then cb new error { code: 500, msg: 'error looking up user', err:err } else
       if not user then cb new error { code: 404, msg: 'user not found' } else
         if configs.passwordSalt
           bcrypt.compare password + configs.passwordSalt, user.password, (err, matches) ->
@@ -87,7 +87,7 @@ userSchema.statics.loginUser = (login, password, cb) ->
 userSchema.statics.registerUser = (userId, data, cb) ->
   setPassword = (password) =>
     @findOne { email: data.email }, (err, user) =>
-      if err then cb new error { code: 500, msg: 'error looking up user' } else
+      if err then cb new error { code: 500, msg: 'error looking up user', err:err } else
         if user then cb new error { code: 403, msg: 'user already exists' } else
           cmd = $set:
             email: data.email
@@ -95,11 +95,11 @@ userSchema.statics.registerUser = (userId, data, cb) ->
             permission_level: 1
           if data.username then cmd.$set.username = data.username
           @findByIdAndUpdate userId, cmd, (err, user) ->
-            if err then cb new error { code: 500, msg: 'error updating user document' } else
+            if err then cb new error { code: 500, msg: 'error updating user document', err:err } else
               cb null, user
   if not configs.passwordSalt then setPassword data.password else
     bcrypt.hash data.password + configs.passwordSalt, 10, (err, hash) ->
-      if err then cb new error { code: 500, msg: 'error computing password hash' } else
+      if err then cb new error { code: 500, msg: 'error computing password hash', err:err } else
         setPassword hash
 
 userSchema.statics.publicListWithIds = (userIds, cb) ->
@@ -108,7 +108,7 @@ userSchema.statics.publicListWithIds = (userIds, cb) ->
     fb_userid: 1
     email    : 1 # gravitar depends on email, email is removed before callback
   this.find _id: $in: userIds, fields, (err, users) ->
-    if err then cb new error { code: 500, msg: 'error looking up users' } else
+    if err then cb new error { code: 500, msg: 'error looking up users', err:err } else
       cb null, users.map (user) ->
         user = user.toJSON()
         user.email = undefined
@@ -130,7 +130,7 @@ userSchema.methods.addVote = (runnableId, cb) ->
   if found then cb new error { code: 403, msg: 'cannot vote on runnable more than once' } else
     @votes.push runnable: runnableId
     @save (err) =>
-      if err then cb new error { code: 500, msg: 'error saving vote in mongodb' } else
+      if err then cb new error { code: 500, msg: 'error saving vote in mongodb', err:err } else
         vote = @votes[@votes.length-1].toJSON()
         vote.runnable = encodeId vote.runnable
         cb null, vote
@@ -140,7 +140,7 @@ userSchema.methods.removeVote = (voteId, cb) ->
   if not vote then cb new error { code: 404, msg: 'vote not found' } else
     vote.remove()
     @save (err) ->
-      if err then cb new error { code: 500, msg: 'error saving vote in mongodb' } else
+      if err then cb new error { code: 500, msg: 'error saving vote in mongodb', err:err } else
         cb()
 
 module.exports = mongoose.model 'Users', userSchema

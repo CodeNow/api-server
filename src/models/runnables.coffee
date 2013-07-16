@@ -13,7 +13,7 @@ Runnables =
     handler = (err, image) ->
       if err then cb err else
         users.findUser _id: userId, (err, user) ->
-          if err then cb new error { code: 500, msg: 'error looking up user' } else
+          if err then cb new error { code: 500, msg: 'error looking up user', err:err } else
             if not user then cb new error { code: 404, msg: 'user not found' } else
               user.addVote image._id, (err) ->
                 if err then cb err else
@@ -25,13 +25,13 @@ Runnables =
     if not isObjectId64 from then images.createFromDisk userId, from, sync, handler else
       from = decodeId from
       containers.findOne { _id: from }, (err, container) ->
-        if err then cb new error { code: 500, msg: 'error fetching container from mongodb'} else
+        if err then cb new error { code: 500, msg: 'error fetching container from mongodb', err:err } else
           if not container then cb new error { code: 403, msg: 'source runnable not found' } else
             images.createFromContainer container, (err, image) ->
               if err then cb err else
                 container.target = image._id
                 container.save (err) ->
-                  if err then cb new error { code: 500, msg: 'error updating save target for container' } else
+                  if err then cb new error { code: 500, msg: 'error updating save target for container', err:err } else
                     handler null, image
 
   createContainer: (userId, from, callback) ->
@@ -71,7 +71,7 @@ Runnables =
     query = { owner: userId }
     if parent then query.parent = decodeId parent
     containers.find query, (err, containers) ->
-      if err then cb new error { code: 500, msg: 'error fetching containers from mongodb' } else
+      if err then cb new error { code: 500, msg: 'error fetching containers from mongodb', err:err } else
         results = for item in containers
           json = item.toJSON()
           json._id = encodeId json._id
@@ -82,7 +82,7 @@ Runnables =
   getContainer: (userId, runnableId, cb) ->
     runnableId = decodeId runnableId
     containers.findOne _id: runnableId, (err, container) ->
-      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+      if err then cb new error { code: 500, msg: 'error looking up runnable', err:err } else
         if not container then cb new error { code: 404, msg: 'runnable not found' } else
           if container.owner.toString() isnt userId.toString() then cb new error { code: 403, msg: 'permission denied' } else
             container.getProcessState (err, state) ->
@@ -100,11 +100,11 @@ Runnables =
       containers.destroy runnableId, (err) ->
         if err then cb err else cb()
     containers.findOne _id: runnableId, (err, container) ->
-      if err then cb new error { code: 500, msg: 'error querying mongodb' } else
+      if err then cb new error { code: 500, msg: 'error querying mongodb', err:err } else
         if not container then cb new error { code: 404, msg: 'runnable not found' } else
           if container.owner.toString() is userId.toString() then remove() else
             users.findUser _id: userId, (err, user) ->
-              if err then cb new error { code: 500, msg: 'error looking up user' } else
+              if err then cb new error { code: 500, msg: 'error looking up user', err:err } else
                 if not user then cb new error { code: 404, msg: 'user not found' } else
                   if user.permission_level <= 1 then cb new error { code: 403, msg: 'permission denied' } else
                     remove()
@@ -115,11 +115,11 @@ Runnables =
       images.destroy runnableId, (err) ->
         if err then cb err else cb()
     images.findOne _id: runnableId, (err, image) ->
-      if err then cb new error { code: 500, msg: 'error querying mongodb' } else
+      if err then cb new error { code: 500, msg: 'error querying mongodb', err:err } else
         if not image then cb new error { code: 404, msg: 'runnable not found' } else
           if image.owner.toString() is userId.toString() then remove() else
             users.findUser _id: userId, (err, user) ->
-              if err then cb new error { code: 500, msg: 'error looking up user' } else
+              if err then cb new error { code: 500, msg: 'error looking up user', err:err } else
                 if not user then cb new error { code: 404, msg: 'user not found' } else
                   if user.permission_level <= 1 then cb new error { code: 403, msg: 'permission denied' } else
                     for vote in user.votes
@@ -130,22 +130,22 @@ Runnables =
   updateName: (userId, runnableId, newName, cb) ->
     runnableId = decodeId runnableId
     containers.findOne _id: runnableId, (err, container) ->
-      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+      if err then cb new error { code: 500, msg: 'error looking up runnable', err:err } else
         if not container then cb new error { code: 404, msg: 'runnable not found' } else
           if container.owner.toString() isnt userId.toString() then cb new error { code: 403, msg: 'permission denied' } else
             container.name = newName;
             container.save (err) ->
-              if err then cb new error { code: 500, msg: 'error saving runnable to mongodb'} else
+              if err then cb new error { code: 500, msg: 'error saving runnable to mongodb', err:err} else
                 cb()
 
   updateImage: (userId, runnableId, from, cb) ->
     runnableId = decodeId runnableId
     from = decodeId from
     images.findOne _id: runnableId, (err, image) ->
-      if err then cb new error { code: 500, msg: 'error looking up runnable in mongodb' } else
+      if err then cb new error { code: 500, msg: 'error looking up runnable in mongodb', err:err } else
         if not image then cb new error { code: 404, msg: 'Published runnable does not exist' } else
           containers.findOne _id: from, (err, container) ->
-            if err then cb new error { code: 500, msg: 'Error looking up container to save from in mongodb' } else
+            if err then cb new error { code: 500, msg: 'Error looking up container to save from in mongodb', err:err } else
               if not container then cb new error { code: 403, msg: 'source container to copy from does not exist' } else
                 image.updateFromContainer container, (err, image) ->
                   if err then cb err else
@@ -157,7 +157,7 @@ Runnables =
   getImage: (runnableId, cb) ->
     decodedRunnableId = decodeId runnableId
     images.findOne _id: decodedRunnableId, (err, image) =>
-      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+      if err then cb new error { code: 500, msg: 'error looking up runnable', err:err } else
         if not image then cb new error { code: 404, msg: 'runnable not found' } else
           @getVotes runnableId, (err, votes) ->
             if err then cb err else
@@ -170,7 +170,7 @@ Runnables =
   startContainer: (userId, runnableId, cb) ->
     runnableId = decodeId runnableId
     containers.findOne _id: runnableId, (err, container) ->
-      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+      if err then cb new error { code: 500, msg: 'error looking up runnable', err:err } else
         if not container then cb new error { code: 404, msg: 'runnable not found' } else
           if container.owner.toString() isnt userId.toString() then cb new error { code: 403, msg: 'permission denied' } else
             container.getProcessState (err, state) ->
@@ -192,7 +192,7 @@ Runnables =
   stopContainer: (userId, runnableId, cb) ->
     runnableId = decodeId runnableId
     containers.findOne _id: runnableId, (err, container) ->
-      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+      if err then cb new error { code: 500, msg: 'error looking up runnable', err:err } else
         if not container then cb new error { code: 404, msg: 'runnable not found' } else
           if container.owner.toString() isnt userId.toString() then cb new error { code: 403, msg: 'permission denied' } else
             container.getProcessState (err, state) ->
@@ -213,7 +213,7 @@ Runnables =
   getVotes: (runnableId, cb) ->
     runnableId = decodeId runnableId
     users.find('votes.runnable': runnableId).count().exec (err, count) ->
-      if err then cb new error { code: 500, msg: 'error counting votes in mongodb' } else
+      if err then cb new error { code: 500, msg: 'error counting votes in mongodb', err:err } else
         cb null, { count: count - 1 }
 
   vote: (userId, runnableId, cb) ->
@@ -222,21 +222,21 @@ Runnables =
       if err then cb err else
         if owner then cb new error { code: 403, msg: 'cannot vote for own runnables' } else
           users.findOne _id: userId, (err, user) ->
-            if err then cb new error { code: 500, msg: 'error looking up user in mongodb' } else
+            if err then cb new error { code: 500, msg: 'error looking up user in mongodb', err:err } else
               if not user then cb new error { code: 403, msg: 'user not found' } else
                 user.addVote runnableId, cb
 
   listAll: (sortByVotes, limit, page, cb) ->
     if not sortByVotes
       images.find().skip(page*limit).limit(limit).exec (err, results) ->
-        if err then cb new error { code: 500, msg: 'error querying mongodb' } else
+        if err then cb new error { code: 500, msg: 'error querying mongodb', err:err } else
           cb null, arrayToJSON results
     else
       users.aggregate voteSortPipeline(limit, limit*page), (err, results) ->
-        if err then cb new error { code: 500, msg: 'error aggragating votes in mongodb' } else
+        if err then cb new error { code: 500, msg: 'error aggragating votes in mongodb', err:err } else
           async.map results, (result, cb) ->
             images.findOne _id: result._id, (err, runnable) ->
-              if err then cb new error { code: 500, msg: 'error retrieving image from mongodb' } else
+              if err then cb new error { code: 500, msg: 'error retrieving image from mongodb', err:err } else
                 if not runnable then cb() else
                   runnable.votes = result.number - 1
                   cb null, runnable
@@ -255,7 +255,7 @@ Runnables =
   listFiltered: (query, sortByVotes, limit, page, cb) ->
       if not sortByVotes
         images.find(query).skip(page*limit).limit(limit).exec (err, results) ->
-          if err then cb new error { code: 500, msg: 'error querying mongodb' } else
+          if err then cb new error { code: 500, msg: 'error querying mongodb', err:err } else
             cb null, arrayToJSON results
       else
         images.find query, (err, selected) ->
@@ -263,10 +263,10 @@ Runnables =
           for image in selected
             filter.push image._id
           users.aggregate voteSortPipelineFiltered(limit, limit*page, filter), (err, results) ->
-            if err then cb new error { code: 500, msg: 'error aggragating votes in mongodb' } else
+            if err then cb new error { code: 500, msg: 'error aggragating votes in mongodb', err:err } else
               async.map results, (result, cb) ->
                 images.findOne { _id: result._id }, (err, runnable) ->
-                  if err then cb new error { code: 500, msg: 'error retrieving image from mongodb' } else
+                  if err then cb new error { code: 500, msg: 'error retrieving image from mongodb', err:err } else
                     if not runnable then cb() else
                       runnable.votes = result.number - 1
                       cb null, runnable
@@ -285,14 +285,14 @@ Runnables =
   getTags: (runnableId, cb) ->
     runnableId = decodeId runnableId
     images.findOne _id: runnableId, (err, image) ->
-      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+      if err then cb new error { code: 500, msg: 'error looking up runnable', err:err } else
         if not image then cb new error { code: 404, msg: 'runnable not found' } else
           cb null, image.tags
 
   getTag: (runnableId, tagId, cb) ->
     runnableId = decodeId runnableId
     images.findOne _id: runnableId, (err, image) ->
-      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+      if err then cb new error { code: 500, msg: 'error looking up runnable', err:err } else
         if not image then cb new error { code: 404, msg: 'runnable not found' } else
           tag = image.tags.id tagId
           if not tag then cb new error { code: 404, msg: 'tag not found' } else
@@ -300,56 +300,56 @@ Runnables =
 
   addTag: (userId, runnableId, text, cb) ->
     users.findUser _id: userId, (err, user) ->
-      if err then cb new error { code: 500, msg: 'error looking up user' } else
+      if err then cb new error { code: 500, msg: 'error looking up user', err:err } else
         if not user then cb new error { code: 403, msg: 'user not found' } else
           if user.permission_level < 1 then cb new error { code: 403, msg: 'permission denied' } else
             runnableId = decodeId runnableId
             images.findOne _id: runnableId, (err, image) ->
-              if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+              if err then cb new error { code: 500, msg: 'error looking up runnable', err:err } else
                 if not image then cb new error { code: 404, msg: 'runnable not found' } else
                   if image.owner.toString() isnt userId.toString()
                     if user.permission_level < 2 then cb new error { code: 403, msg: 'permission denied' } else
                       image.tags.push name: text
                       tagId = image.tags[image.tags.length-1]._id
                       image.save (err) ->
-                        if err then cb new error { code: 500, msg: 'error saving tag' } else
+                        if err then cb new error { code: 500, msg: 'error saving tag', err:err } else
                           cb null, { name: text, _id: tagId }
                   else
                     image.tags.push name: text
                     tagId = image.tags[image.tags.length-1]._id
                     image.save (err) ->
-                      if err then cb new error { code: 500, msg: 'error saving tag' } else
+                      if err then cb new error { code: 500, msg: 'error saving tag', err:err } else
                         cb null, { name: text, _id: tagId }
 
   removeTag: (userId, runnableId, tagId, cb) ->
     runnableId = decodeId runnableId
     images.findOne _id: runnableId, (err, image) ->
-      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+      if err then cb new error { code: 500, msg: 'error looking up runnable', err:err } else
         if not image then cb new error { code: 404, msg: 'runnable not found' } else
           if image.owner.toString() isnt userId.toString()
             user = users.findOne _id: userId, (err, user) ->
-              if err then cb new error { code: 500, msg: 'error looking up user' } else
+              if err then cb new error { code: 500, msg: 'error looking up user', err:err } else
                 if not user then cb new error { code: 500, msg: 'user not found' } else
                   if user.permission_level < 2 then cb new error { code: 403, msg: 'permission denied' } else
                     image.tags.id(tagId).remove()
                     image.save (err) ->
-                      if err then cb new error { code: 500, msg: 'error removing tag from mongodb' } else cb()
+                      if err then cb new error { code: 500, msg: 'error removing tag from mongodb', err:err } else cb()
           else
             image.tags.id(tagId).remove()
             image.save (err) ->
-              if err then cb new error { code: 500, msg: 'error removing tag from mongodb' } else cb()
+              if err then cb new error { code: 500, msg: 'error removing tag from mongodb', err:err } else cb()
 
   getContainerTags: (runnableId, cb) ->
     runnableId = decodeId runnableId
     containers.findOne _id: runnableId, (err, container) ->
-      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+      if err then cb new error { code: 500, msg: 'error looking up runnable', err:err } else
         if not container then cb new error { code: 404, msg: 'runnable not found' } else
           cb null, container.tags
 
   getContainerTag: (runnableId, tagId, cb) ->
     runnableId = decodeId runnableId
     containers.findOne _id: runnableId, (err, container) ->
-      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+      if err then cb new error { code: 500, msg: 'error looking up runnable', err:err } else
         if not container then cb new error { code: 404, msg: 'runnable not found' } else
           tag = container.tags.id tagId
           if not tag then cb new error { code: 404, msg: 'tag not found' } else
@@ -357,62 +357,62 @@ Runnables =
 
   addContainerTag: (userId, runnableId, text, cb) ->
     users.findUser _id: userId, (err, user) ->
-      if err then cb new error { code: 500, msg: 'error looking up user' } else
+      if err then cb new error { code: 500, msg: 'error looking up user', err:err } else
         if not user then cb new error { code: 403, msg: 'user not found' } else
           runnableId = decodeId runnableId
           containers.findOne _id: runnableId, (err, container) ->
-            if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+            if err then cb new error { code: 500, msg: 'error looking up runnable', err:err } else
               if not container then cb new error { code: 404, msg: 'runnable not found' } else
                 if container.owner.toString() isnt userId.toString()
                   if user.permission_level < 2 then cb new error { code: 403, msg: 'permission denied' } else
                     container.tags.push name: text
                     tagId = container.tags[container.tags.length-1]._id
                     container.save (err) ->
-                      if err then cb new error { code: 500, msg: 'error saving tag' } else
+                      if err then cb new error { code: 500, msg: 'error saving tag', err:err } else
                         cb null, { name: text, _id: tagId }
                 else
                   container.tags.push name: text
                   tagId = container.tags[container.tags.length-1]._id
                   container.save (err) ->
-                    if err then cb new error { code: 500, msg: 'error saving tag' } else
+                    if err then cb new error { code: 500, msg: 'error saving tag', err:err } else
                       cb null, { name: text, _id: tagId }
 
   removeContainerTag: (userId, runnableId, tagId, cb) ->
     runnableId = decodeId runnableId
     containers.findOne _id: runnableId, (err, container) ->
-      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+      if err then cb new error { code: 500, msg: 'error looking up runnable', err:err } else
         if not container then cb new error { code: 404, msg: 'runnable not found' } else
           if container.owner.toString() isnt userId.toString()
             user = users.findOne _id: userId, (err, user) ->
-              if err then cb new error { code: 500, msg: 'error looking up user' } else
+              if err then cb new error { code: 500, msg: 'error looking up user', err:err } else
                 if not user then cb new error { code: 500, msg: 'user not found' } else
                   if user.permission_level < 2 then cb new error { code: 403, msg: 'permission denied' } else
                     container.tags.id(tagId).remove()
                     container.save (err) ->
-                      if err then cb new error { code: 500, msg: 'error removing tag from mongodb' } else cb()
+                      if err then cb new error { code: 500, msg: 'error removing tag from mongodb', err:err } else cb()
           else
             container.tags.id(tagId).remove()
             container.save (err) ->
-              if err then cb new error { code: 500, msg: 'error removing tag from mongodb' } else cb()
+              if err then cb new error { code: 500, msg: 'error removing tag from mongodb', err:err } else cb()
 
   listFiles: (runnableId, content, dir, default_tag, path, cb) ->
     runnableId = decodeId runnableId
     containers.findOne _id: runnableId, (err, container) ->
-      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+      if err then cb new error { code: 500, msg: 'error looking up runnable', err:err } else
         if not container then cb new error { code: 404, msg: 'runnable not found' } else
           container.listFiles content, dir, default_tag, path, cb
 
   syncFiles: (runnableId, cb) ->
     runnableId = decodeId runnableId
     containers.findOne (err, container) ->
-      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+      if err then cb new error { code: 500, msg: 'error looking up runnable', err:err } else
         if not container then cb new error { code: 404, msg: 'runnable not found' } else
           container.syncFiles cb
 
   createFile: (userId, runnableId, name, path, content, cb) ->
     runnableId = decodeId runnableId
     containers.findOne _id: runnableId, (err, container) ->
-      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+      if err then cb new error { code: 500, msg: 'error looking up runnable', err:err } else
         if not container then cb new error { code: 404, msg: 'runnable not found' } else
           if container.owner.toString() isnt userId.toString() then cb new error { code: 403, msg: 'permission denied' } else
             container.createFile name, path, content, cb
@@ -420,7 +420,7 @@ Runnables =
   updateFile: (userId, runnableId, fileId, content, cb) ->
     runnableId = decodeId runnableId
     containers.findOne _id: runnableId, (err, container) ->
-      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+      if err then cb new error { code: 500, msg: 'error looking up runnable', err:err } else
         if not container then cb new error { code: 404, msg: 'runnable not found' } else
           if container.owner.toString() isnt userId.toString() then cb new error { code: 403, msg: 'permission denied' } else
             container.updateFile fileId, content, cb
@@ -428,7 +428,7 @@ Runnables =
   defaultFile: (userId, runnableId, fileId, cb) ->
     runnableId = decodeId runnableId
     containers.findOne _id: runnableId, (err, container) ->
-      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+      if err then cb new error { code: 500, msg: 'error looking up runnable', err:err } else
         if not container then cb new error { code: 404, msg: 'runnable not found' } else
           if container.owner.toString() isnt userId.toString() then cb new error { code: 403, msg: 'permission denied' } else
             container.tagFile fileId, cb
@@ -436,7 +436,7 @@ Runnables =
   renameFile: (userId, runnableId, fileId, name, cb) ->
     runnableId = decodeId runnableId
     containers.findOne _id: runnableId, (err, container) ->
-      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+      if err then cb new error { code: 500, msg: 'error looking up runnable', err:err } else
         if not container then cb new error { code: 404, msg: 'runnable not found' } else
           if container.owner.toString() isnt userId.toString() then cb new error { code: 403, msg: 'permission denied' } else
             container.renameFile fileId, name, cb
@@ -444,7 +444,7 @@ Runnables =
   moveFile: (userId, runnableId, fileId, path, cb) ->
     runnableId = decodeId runnableId
     containers.findOne _id: runnableId, (err, container) ->
-      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+      if err then cb new error { code: 500, msg: 'error looking up runnable', err:err } else
         if not container then cb new error { code: 404, msg: 'runnable not found' } else
           if container.owner.toString() isnt userId.toString() then cb new error { code: 403, msg: 'permission denied' } else
             container.moveFile fileId, path, cb
@@ -452,7 +452,7 @@ Runnables =
   createDirectory: (userId, runnableId, name, path, cb) ->
     runnableId = decodeId runnableId
     containers.findOne _id: runnableId, (err, container) ->
-      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+      if err then cb new error { code: 500, msg: 'error looking up runnable', err:err } else
         if not container then cb new error { code: 404, msg: 'runnable not found' } else
           if container.owner.toString() isnt userId.toString() then cb new error { code: 403, msg: 'permission denied' } else
             container.createDirectory name, path, cb
@@ -460,7 +460,7 @@ Runnables =
   readFile: (runnableId, fileId, cb) ->
     runnableId = decodeId runnableId
     containers.findOne _id: runnableId, (err, container) ->
-      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+      if err then cb new error { code: 500, msg: 'error looking up runnable', err:err } else
         if not container then cb new error { code: 404, msg: 'runnable not found' } else
           file = container.files.id fileId
           if not file then cb new error { code: 404, msg: 'file not found' } else
@@ -469,7 +469,7 @@ Runnables =
   deleteFile: (runnableId, fileId, recursive, cb) ->
     runnableId = decodeId runnableId
     containers.findOne _id: runnableId, (err, container) ->
-      if err then cb new error { code: 500, msg: 'error looking up runnable' } else
+      if err then cb new error { code: 500, msg: 'error looking up runnable', err:err } else
         if not container then cb new error { code: 404, msg: 'runnable not found' } else
           file = container.files.id fileId
           if not file then cb new error { code: 404, msg: 'file not found' } else
