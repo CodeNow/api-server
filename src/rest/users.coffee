@@ -7,6 +7,7 @@ express = require 'express'
 fs = require 'fs'
 formidable = require 'formidable'
 users = require '../models/users'
+images = require '../models/images'
 redis = require 'redis'
 runnables = require '../models/runnables'
 uuid = require 'node-uuid'
@@ -96,6 +97,8 @@ module.exports = (parentDomain) ->
       users.publicListWithIds req.domain, userIds, sendUsers
     else if req.query.username
      users.publicList req.domain, lower_username:req.query.username.toLowerCase(), sendUsers
+    else if req.query.channel
+      users.channelLeaders req.domain, req.query.channel, req.query.idsOnly, sendUsers
     else
       res.json 400, message: 'must provide ids or username for users to get'
 
@@ -108,7 +111,9 @@ module.exports = (parentDomain) ->
           json_user = user.toJSON()
           json_user.votes = user.getVotes()
           delete json_user.password
-          res.json json_user
+          images.count owner:user._id, req.domain.intercept (imagesCount) ->
+            json_user.imagesCount = imagesCount
+            res.json json_user
 
   app.get '/users/me', getuser
   app.get '/users/:userid', fetchuser, getuser

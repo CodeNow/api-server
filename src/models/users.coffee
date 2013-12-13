@@ -1,3 +1,4 @@
+async = require 'async'
 bcrypt = require 'bcrypt'
 configs = require '../configs'
 crypto = require 'crypto'
@@ -80,6 +81,15 @@ userSchema.virtual('isVerified').get () ->
 userSchema.virtual('isModerator').get () ->
   this.permission_level >= 5
 
+publicFields =
+  username : 1
+  name     : 1
+  fb_userid: 1
+  email    : 1
+  created  : 1
+  show_email: 1
+  company  : 1,
+
 userSchema.statics.createUser = (domain, cb) ->
   user = new @
   user.save domain.intercept () ->
@@ -142,19 +152,18 @@ userSchema.statics.publicListWithIds = (domain, userIds, cb) ->
   @publicList domain, query, cb
 
 userSchema.statics.publicList = (domain, query, cb) ->
-  fields =
-    username : 1
-    name     : 1
-    fb_userid: 1
-    email    : 1
-    created  : 1
-    show_email: 1
-    company  : 1,
-  @find query, fields, domain.intercept (users) ->
-    cb null, users.map (user) ->
+  @find query, publicFields, domain.intercept (users) ->
+    async.map users, (user) ->
       user = user.toJSON()
       if !user.show_email then user.email = undefined
-      user
+      if users.length is 1
+        # right now image count is only required for public profile, which is a publicList of one user
+        images.count owner:user._id, domain.intercept (imagesCount) ->
+          user.imagesCount = imagesCount
+          cb null, user
+      else
+        cb null, user
+    , cb
 
 userSchema.statics.addVote = (domain, userId, runnableId, cb) ->
   self = @
@@ -172,6 +181,28 @@ userSchema.statics.addVote = (domain, userId, runnableId, cb) ->
   @update query, update, domain.intercept (success) ->
     if !success then cb error 403, 'you already voted on this runnable' else
       cb null, vote
+
+userSchema.statics.channelLeaders = (domain, channelId, idsOnly, cb) ->
+  self = @
+  images.distinct 'owner', 'tags.channel':channelId, (err, userIds) ->
+    if err then cb err else
+    async.waterfall [
+      (cb) ->
+        if idsOnly
+          users = userIds.map (userId) -> {_id:userId}
+          cb null, users
+        else
+          self.find _id:$in:userIds, publicFields, domain.intercept (users) ->
+            cb null, users
+    , (users, cb) ->
+        async.map users, (user, cb) ->
+          images.countInChannelByOwner domain, channelId, user._id, (err, count) ->
+            if err then cb err else
+              user.count = count
+              cb null, user
+        , cb
+    ], cb
+
 
 userSchema.methods.getVotes = () ->
   votes = [ ]
