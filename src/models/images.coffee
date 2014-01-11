@@ -307,7 +307,7 @@ imageSchema.statics.isOwner = (domain, userId, runnableId, cb) ->
       cb null, image.owner.toString() is userId.toString()
 
 imageSchema.methods.sync = (domain, cb) ->
-  @ = self;
+  self = @;
   timing = require('../TimingLog').create()
   timing.start(self._id, '@synced', @synced)
   timing.end(self._id, '@synced', @synced)
