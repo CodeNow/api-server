@@ -102,8 +102,11 @@ Runnables =
                       cb null, image
 
       (image, cb)->
+        timing = require('../TimingLog').create()
+        timing.start image._id, 'containers.create'
         containers.create domain, userId, image, data, (err, container) ->
           if err then cb err else
+            timing.end image._id, 'containers.create'
             json_container = container.toJSON()
             encode domain, json_container, cb
     ], cb

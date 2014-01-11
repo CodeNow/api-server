@@ -117,7 +117,10 @@ containerSchema.statics.create = (domain, owner, image, data, cb) ->
     cb = data
     data = {}
   data = if data? then data else {}
+  timing = require('../TimingLog').create()
+  timing.start(image._id, 'image.sync')
   image.sync domain, () =>
+    timing.end(image._id, 'image.sync')
     servicesToken = 'services-' + uuid.v4()
     env = [
       "RUNNABLE_USER_DIR=#{image.file_root}"
@@ -159,6 +162,8 @@ containerSchema.statics.create = (domain, owner, image, data, cb) ->
         repo = encodeId image._id.toString()
       _.extend container, data
       console.log 'Image', "#{configs.dockerRegistry}/runnable/#{repo}"
+      timing = require('../TimingLog').create()
+      timing.start(image._id, 'createContainerHBSPost')
       request
         url: "#{configs.harbourmaster}/containers"
         method: 'POST'
@@ -173,6 +178,7 @@ containerSchema.statics.create = (domain, owner, image, data, cb) ->
           PortSpecs: [ container.port.toString() ]
           Cmd: [ container.cmd ]
       , domain.intercept (res) ->
+        timing.end(image._id, 'createContainerHBSPost')
         container.save domain.intercept () ->
           cb null, container
     if image.specification?

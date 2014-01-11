@@ -183,8 +183,11 @@ module.exports = (parentDomain) ->
 
   postrunnable = (req, res) ->
     if not req.query.from? then res.json 400, message: 'must provide a runnable to fork from' else
+      timing = require('../TimingLog').create()
+      timing.start req.query.from, 'runnables.createContainer'
       runnables.createContainer req.domain, req.user_id, req.query.from, (err, container) ->
         if err then res.json err.code, message: err.msg else
+          timing.end req.query.from, 'runnables.createContainer'
           res.json 201, container
 
   app.post '/users/me/runnables', postrunnable

@@ -307,8 +307,15 @@ imageSchema.statics.isOwner = (domain, userId, runnableId, cb) ->
       cb null, image.owner.toString() is userId.toString()
 
 imageSchema.methods.sync = (domain, cb) ->
+  @ = self;
+  timing = require('../TimingLog').create()
+  timing.start(self._id, '@synced', @synced)
+  timing.end(self._id, '@synced', @synced)
   if @synced then cb() else
+    timing = require('../TimingLog').create()
+    timing.start(self._id, 'syncDockerImage')
     syncDockerImage domain, @, (err) =>
+      timing.end(self._id, 'syncDockerImage')
       if err then cb err else
         @synced = true
         @save domain.intercept () ->
