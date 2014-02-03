@@ -43,17 +43,17 @@ describe('Files', function () {
         }));
         it('should not get container\'s files', accessDenied);
       });
-      describe('admin', function () {
-        beforeEach(extendContextSeries({
-          user: users.createAdmin
-        }));
-        it('should get container\'s files', function (done) {
-          this.user.specRequest(this.container._id)
-            .expect(200)
-            .expectArray() // TODO: verify length
-            .end(done);
-        });
-      });
+      // describe('admin', function () {
+      //   beforeEach(extendContextSeries({
+      //     user: users.createAdmin
+      //   }));
+      //   it('should get container\'s files', function (done) {
+      //     this.user.specRequest(this.container._id)
+      //       .expect(200)
+      //       .expectArray() // TODO: verify length
+      //       .end(done);
+      //   });
+      // });
       function accessDenied (done) {
         this.user.specRequest(this.container._id)
           .expect(403)
