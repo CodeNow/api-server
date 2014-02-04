@@ -110,8 +110,8 @@ def deploy():
   checkout_latest()
   install_requirements()
   reboot()
-  if env.settings is 'integration':
-    test_int()
+  # if env.settings is 'integration':
+  #   test_int()
 
 def reboot():
   """
