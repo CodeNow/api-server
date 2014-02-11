@@ -21,6 +21,12 @@ app.del('/containers/:token', function (req, res, next) {
 app.put('/containers/:token/route', function (req, res, next) {
   res.send(200);
 });
+app.put('/containers/:token/route', function (req, res, next) {
+  res.send(200);
+});
+app.post('/containers/:token/commit', function (req, res, next) {
+  res.send(204);
+});
 app.all('*', express.logger(), function (req, res, next) {
   res.send(404);
   console.log(req.url, req.method);
