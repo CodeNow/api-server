@@ -11,6 +11,13 @@ var async = require('./async');
 var uuid = require('node-uuid');
 var bodyMethods = ['post', 'put', 'patch', 'del'];
 
+var qs = require('querystring');
+var p = require('path');
+var _ = require('lodash');
+var helpers = require('./helpers');
+var async = require('./async');
+var bodyMethods = ['post', 'put', 'patch', 'del'];
+
 var TestUser = module.exports = function (properties) {
   _.extend(this, properties);
 };
@@ -56,11 +63,13 @@ var TestUser = module.exports = function (properties) {
         req.end(callback);
       }
     };
+    /* TestUser.prototype[postUser, getUser, putUser, patchUser, deleteUser, ...] */
     /* TestUser.prototype[postContainer, getContainer, putContainer, patchContainer, deleteContainer, ...] */
     /* TestUser.prototype[postSpecification, getSpecification, putSpecification, patchSpecification, deleteSpecification, ...] */
     /* TestUser.prototype[postImplementation, getImplementation, putImplementation, patchImplementation, deleteImplementation, ...] */
     /* TestUser.prototype[postImage, getImage, putImage, patchImage, deleteImage, ...] */
     var modelUrlMap = {
+      User          : '/users',
       Container     : '/users/me/runnables',
       Specification : '/specifications',
       Implementation: '/users/me/implementations',
@@ -77,8 +86,13 @@ var TestUser = module.exports = function (properties) {
           callback = opts;
           opts = {};
         }
-        var path = p.join('/', baseUrl, id) + (opts.qs ? '?' + qs.stringify(opts.qs) : '');
-        var req = this[method](path, opts, async.pick('body', callback));
+        var path = p.join('/', baseUrl, id);
+        if (!callback) {
+          return this[method](path, opts);
+        }
+        else {
+          this[method](path, opts, async.pick('body', callback));
+        }
       };
     };
     Object.keys(modelUrlMap).forEach(function (modelName) {
@@ -99,13 +113,13 @@ TestUser.prototype.specRequest = function () {
   var path   = reqsplit[1];
 
   var args = Array.prototype.slice.call(arguments);
-  args.forEach(function (i) {
+  args.forEach(function (i) { // filter out undef/null
     if (i === null || i === undefined) {
       var err = new Error('specRequest: invoked with undefined args [ '+ args +' ]');
       console.error(err.message);
       throw err;
     }
-  }); // filter out undef/null
+  });
   var query, callback;
   if (typeof args[args.length - 1] === 'function') {
     callback = args.pop();
@@ -113,18 +127,22 @@ TestUser.prototype.specRequest = function () {
   if (_.isObject(args[args.length - 1])) {
     query = args.pop();
   }
+  // replace url params
   var pathArgRegExp = /(\/):[^\/]*/;
   args.forEach(function (arg) {
     path = path.replace(pathArgRegExp, '$1'+arg);
   });
   if (pathArgRegExp.test(path)) {
-    throw new Error('missing args for spec request url');
+    throw new Error('specRequest: missing args');
   }
+  // make sure describe has an http method
   if (typeof this[method] !== 'function') {
-    console.error('"' +method+ '" is not an http method');
+    console.error('specRequest: check your describes, "' +method+ '" is not an http method');
   }
-  return this[method](path, { qs:query }, callback);
+  var opts = _.isEmpty(query) ? {} : { qs:query };
+  return this[method](path, opts, callback);
 };
+
 TestUser.prototype.register = function (auth) {
   return this.put('/users/me')
     .send(auth)
@@ -135,7 +153,7 @@ TestUser.prototype.dbUpdate = function (updateSet, cb) {
   var self = this;
   var oid = require('mongodb').ObjectID;
   var userId = oid.createFromHexString(this._id);
-  db.users.update({_id:userId}, updateSet, function (err, docsUpdated) {
+  db.users.update({_id:userId}, { $set: updateSet }, function (err, docsUpdated) {
     err = err || (docsUpdated === 0 && new Error('db update failed, user not found'));
     if (err) {
       return cb(err);
@@ -144,26 +162,31 @@ TestUser.prototype.dbUpdate = function (updateSet, cb) {
     cb();
   });
 };
-TestUser.prototype.createImageFromFixture = function (name, callback) {
-  if (this.permission_level < 5) {
-    return callback(new Error('only admin users can create images from fixtures'));
+TestUser.prototype.createImage = function (from, callback) {
+  this.postImage({ qs: { from: from } })
+    .expect(201)
+    .end(async.pick('body', callback));
+};
+TestUser.prototype.createImageFromFixture = function (name, imageName, callback) {
+  if (typeof imageName === 'function') {
+    callback = imageName;
+    imageName = null;
   }
-  var path = __dirname+"/fixtures/images/"+name;
-  var compress = zlib.createGzip();
-  var packer = tar.Pack();
-  var reader = fstream.Reader({
+  imageName = imageName || name;
+  if (this.permission_level < 3) {
+    return callback(new Error('only publishers and admin users can create images from fixtures'));
+  }
+  var path = p.join(__dirname, '/fixtures/images/', name);
+  fstream.Reader({
     path: path,
     type: 'Directory',
     mode: '0755'
-  });
-  var request = this.post('/runnables/import')
-    .set('content-type', 'application/x-gzip')
-    .expect(201)
-    .streamEnd(async.pick('body', callback));
-  compress.pipe(request);
-  packer.pipe(compress);
-  reader.pipe(packer);
-  reader.resume();
+  }).pipe(tar.Pack())
+    .pipe(zlib.createGzip())
+    .pipe(this.post('/runnables/import?name=' + imageName)
+      .set('content-type', 'application/x-gzip')
+      .expect(201)
+      .streamEnd(async.pick('body', callback)));
 };
 TestUser.prototype.createContainer = function (from, body, callback) {
   if (typeof body === 'function') {
@@ -175,14 +198,16 @@ TestUser.prototype.createContainer = function (from, body, callback) {
     .expect(201)
     .end(async.pick('body', callback));
 };
-TestUser.prototype.createContainerFromFixture = function (name, callback) {
+TestUser.prototype.createContainerFromFixture = function (name, imageName, callback) {
   var self = this;
-  this.createImageFromFixture(name, function (err, image) {
-    if (err) {
-      return callback(err);
+  async.waterfall([
+    function (cb) {
+      self.createImageFromFixture(name, imageName, cb);
+    },
+    function (image, cb) {
+      self.createContainer(image._id, cb);
     }
-    self.createContainer(image._id, callback);
-  });
+  ], callback);
 };
 TestUser.prototype.createSpecification = function (body, callback) {
   if (typeof body === 'function') {
@@ -201,5 +226,46 @@ TestUser.prototype.createImplementation = function (spec, containerId, callback)
   this.postImplementation({
     body: body,
     expect: 201
+  }, callback);
+};
+TestUser.prototype.tagContainerWithChannel = function (containerId, channelName, callback) {
+  containerId = containerId._id || containerId;
+  channelName = channelName.name || channelName;
+  var url = p.join('/users/me/runnables/', containerId, 'tags');
+  this.post(url)
+    .send({ name: channelName })
+    .expect(201)
+    .end(async.pick('body', callback));
+};
+TestUser.prototype.createTaggedImage = function (fixtureName, channelNames, callback) {
+  if (channelNames && !Array.isArray(channelNames)) {
+    channelNames = [channelNames];
+  }
+  var self = this;
+  var containerId;
+  async.waterfall([
+    this.createContainerFromFixture.bind(this, fixtureName, fixtureName+helpers.randomValue()),
+    function (container, cb) {
+      async.map(channelNames, function (channelName, cb) {
+        self.tagContainerWithChannel(container, channelName, cb);
+      },
+      function (err) {
+        cb(err, container);
+      });
+    },
+    function (container, cb) { // rename container to prevent image name conflict
+      self.patchContainer(container._id, { name: fixtureName+helpers.randomValue() }, cb);
+    },
+    function (container, cb) {
+      self.createImage(container._id, cb); // TODO: change to publish back..
+    }
+  ], callback);
+};
+TestUser.prototype.removeAllContainerTags = function (container, callback) {
+  var user = this;
+  async.forEach(container.tags, function (tag, cb) {
+    user.del('/users/me/runnables/'+container._id+'/tags/'+tag._id)
+      .expect(200)
+      .end(cb);
   }, callback);
 };
