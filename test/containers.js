@@ -4,6 +4,14 @@ var images = require('./lib/imageFactory');
 var helpers = require('./lib/helpers');
 var extendContext = helpers.extendContext;
 var extendContextSeries = helpers.extendContextSeries;
+var emailer = require('../lib/emailer');
+var delistEmailCallback = function() {
+  console.error('delistEmailCallback is not defined for testing purposes');
+  console.error('update your test to deal with this functionality');
+};
+emailer.delistEmail = function(u, c) {
+  delistEmailCallback();
+};
 require('./lib/fixtures/harbourmaster');
 require('./lib/fixtures/dockworker');
 
@@ -260,7 +268,7 @@ describe('Containers', function () {
     // not owner FAIL
     describe('admin', function () {
       beforeEach(extendContextSeries({
-        owner: users.createAnonymous,
+        owner: users.createPublisher,
         container: ['owner.createContainer', ['image._id']],
         user: users.createAdmin
       }));
@@ -288,6 +296,24 @@ describe('Containers', function () {
               .expectBody('_id')
               .expectBody('status', commitStatus)
               .end(done);
+          });
+        });
+        describe('updating tags', function () {
+          beforeEach(extendContextSeries({
+            image: ['owner.createTaggedImage', ['node.js_express', 'node']],
+            container: ['user.createContainer', ['image._id']],
+            untag: ['user.removeAllContainerTags', ['container']],
+          }));
+          it ('should send email if delisted', function (done) {
+            var checkDone = helpers.createCheckDone(done);
+            delistEmailCallback = checkDone.done();
+            var data = _.clone(this.container);
+            data.status = 'Committing back';
+            this.user.specRequest(this.container._id)
+              .expect(200)
+              .send(data)
+              .expectBody('_id')
+              .end(checkDone.done());
           });
         });
         describe('commit error', function () {
