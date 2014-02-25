@@ -26,6 +26,14 @@ def integration():
     'api-int'
   ]
 
+def staging():
+  """
+  Work on staging environment
+  """
+  env.settings = 'staging'
+  env.hosts = [
+    'api-rep_int'
+  ]
 
 """
 Branches
@@ -56,7 +64,7 @@ def setup():
   """
   Install and start the server.
   """
-  require('settings', provided_by=[production, integration])
+  require('settings', provided_by=[production, integration, staging])
   require('branch', provided_by=[stable, master, branch])
 
   clone_repo()
@@ -104,7 +112,7 @@ def deploy():
   """
   Deploy the latest version of the site to the server.
   """
-  require('settings', provided_by=[production, integration])
+  require('settings', provided_by=[production, integration, staging])
   require('branch', provided_by=[stable, master, branch])
 
   checkout_latest()
@@ -138,7 +146,7 @@ def rollback(commit_id):
   There is NO guarantee we have committed a valid dataset for an arbitrary
   commit hash.
   """
-  require('settings', provided_by=[production, integration])
+  require('settings', provided_by=[production, integration, staging])
   require('branch', provided_by=[stable, master, branch])
 
   checkout_latest()
@@ -157,7 +165,7 @@ def list():
   """
   List processes running inside forever
   """
-  require('settings', provided_by=[production, integration])
+  require('settings', provided_by=[production, integration, staging])
   run('forever list')
 
 """
