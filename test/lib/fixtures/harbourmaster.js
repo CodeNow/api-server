@@ -5,6 +5,8 @@ var port = configs.harbourmaster.split(':')[2];
 var tar = require('tar');
 var zlib = require('zlib');
 var helpers = require('../helpers');
+var bodyParser = require('body-parser');
+var morgan = require('morgan');
 var app = express();
 var redis = require('redis').createClient(configs.redis.port, configs.redis.ipaddress);
 
@@ -31,7 +33,7 @@ app.post('/build', function (req, res, next) {
       }
     });
 });
-app.post('/containers', express.json(), function (req, res, next) {
+app.post('/containers', bodyParser.json(), function (req, res, next) {
   if (typeof req.body.servicesToken !== 'string' ||
     typeof req.body.webToken !== 'string' ||
     !Array.isArray(req.body.Env) ||
@@ -53,7 +55,7 @@ app.del('/containers/:token', function (req, res, next) {
 app.put('/containers/:token/route', function (req, res, next) {
   res.send(204);
 });
-app.post('/containers/:token/commit', express.json(),
+app.post('/containers/:token/commit', bodyParser.json(),
   function (req, res) {
     res.send(204);
     var checkDone = helpers.createCheckDone(finished);
@@ -95,7 +97,7 @@ app.get('/local/nabber/archive/master.tar.gz', function (req, res, next) {
   });
   readStream.pipe(res);
 });
-app.all('*', express.logger(), function (req, res, next) {
+app.all('*', morgan(), function (req, res, next) {
   res.send(404);
   console.log(req.url, req.method);
 });

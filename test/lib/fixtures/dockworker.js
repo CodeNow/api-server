@@ -9,6 +9,7 @@ var findit = require('findit');
 var path = require('path');
 var async = require('async');
 var folderPath = __dirname + '/images/node.js/src/';
+var morgan = require('morgan');
 
 function createFilter (query) {
   return function filter (base) {
@@ -204,7 +205,7 @@ app.post('/api/envs', function (req, res) {
   res.send(204);
 });
 
-app.all('*', express.logger(), function (req, res) {
+app.all('*', morgan(), function (req, res) {
   res.send(404);
 });
 
