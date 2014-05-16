@@ -109,7 +109,7 @@ def install_requirements():
   """
   Install the required packages using npm.
   """
-  sudo('npm install pm2 -g')
+  sudo('npm install pm2@0.8.10 -g')
   with cd('api-server'):
     run('npm install')
 
