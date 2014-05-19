@@ -12,5 +12,8 @@ WORKDIR api-server RUN npm install
 WORKDIR api-server make 
 WORKDIR api-server npm build 
 
+# Expose port to Host
+EXPOSE 3000
 # Define default command.
 CMD ["NODE_ENV=staging pm2 start server.js -n API-Server", "pm2 logs"]
+
