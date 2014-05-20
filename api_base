@@ -1,12 +1,11 @@
 #
-# api_repo_base Dockerfile
+# api_base Dockerfile
 #
 #
 # Pull base image.
 FROM sandipsingh/runnable_ubuntu
 RUN apt-get update 
 RUN apt-get install -y software-properties-common
-RUN apt-get update 
 # Installing Node.js
 RUN wget http://nodejs.org/dist/v0.10.23/node-v0.10.23.tar.gz 
 RUN tar xvf node-v*.tar.gz 
@@ -16,5 +15,4 @@ RUN make -j4
 RUN make install
 RUN apt-get update 
 RUN npm install pm2 -g
-# Define default command.
-CMD ["node"]
+
