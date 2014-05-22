@@ -1,5 +1,7 @@
 var configs = require('configs');
 var api_server = require('index');
+var cluster = require('cluster');
+var numCPUs = require('os').cpus().length;
 
 if (configs.nodetime) {
   var nodetime = require('nodetime');
@@ -10,26 +12,33 @@ if (configs.newrelic) {
   require('newrelic');
 }
 
-var cluster = require('cluster');
-var http = require('http');
-var numCPUs = require('os').cpus().length;
+cluster.on('fork', function(worker) {
+  console.log('fork worker ', worker.id);
+});
+cluster.on('listening', function(worker, address) {
+  console.log('listening worker', worker.id, ' address', address);
+});
+cluster.on('exit', function(worker, code, signal) {
+  console.log('exit worker ', worker.id, ' code', code, signal);
+  cluster.fork();
+});
+cluster.on('online', function(worker) {
+  console.log('online worker ', worker.id);
+});
+cluster.on('disconnect', function(worker) {
+  console.log('disconnected worker' + worker);
+});
 
 if (cluster.isMaster) {
   // Fork workers.
   for (var i = 0; i < numCPUs; i++) {
     cluster.fork();
   }
-
-  cluster.on('exit', function(worker, code, signal) {
-    console.log('worker ' + worker.process.pid + ' died');
-    startServer();
-  });
-
 } else {
-  startServer();
-}
-
-var startServer = function() {
   var worker = new api_server();
-  worker.start(function noop () {});
-};
+  worker.start(function (err) {
+    if (err) {
+      console.error("can not start");
+    }
+  });
+}
