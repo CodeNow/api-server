@@ -13,20 +13,21 @@ if (configs.newrelic) {
 }
 
 cluster.on('fork', function(worker) {
-  console.log('fork worker ', worker.id);
+  console.log('CLUSTER: fork worker', worker.id);
 });
 cluster.on('listening', function(worker, address) {
-  console.log('listening worker', worker.id, ' address', address);
+  console.log('CLUSTER: listening worker', worker.id,
+    'address', address.address + ":" + address.port);
 });
 cluster.on('exit', function(worker, code, signal) {
-  console.log('exit worker ', worker.id, ' code', code, signal);
+  console.log('CLUSTER: exit worker', worker.id, 'code', code, 'signal', signal);
   cluster.fork();
 });
 cluster.on('online', function(worker) {
-  console.log('online worker ', worker.id);
+  console.log('CLUSTER: online worker', worker.id);
 });
 cluster.on('disconnect', function(worker) {
-  console.log('disconnected worker' + worker);
+  console.log('CLUSTER: disconnected worker' + worker.id);
 });
 
 if (cluster.isMaster) {
