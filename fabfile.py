@@ -91,8 +91,6 @@ def checkout_latest():
     run('git config --global credential.helper cache')
     run('git fetch --all')
     run('git reset --hard origin/%(branch)s' % env)
-    run('git checkout -f %(branch)s' % env)
-    run('git pull origin %(branch)s' % env)
 
 def install_requirements():
   """
