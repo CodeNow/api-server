@@ -5,7 +5,6 @@ from fabric.api import *
 env.user = "ubuntu"
 env.use_ssh_config = True
 env.note = ""
-env.dockerized = False
 env.newrelic_application_id = ""
 
 """
@@ -42,15 +41,6 @@ def staging():
     'stage-api'
   ]
 
-def runnable3():
-  """
-  Work on staging environment
-  """
-  env.requireNote = False;
-  env.settings = 'runnable3'
-  env.hosts = [
-    'runnable3.net'
-  ]
 """
 Branches
 """
@@ -71,7 +61,6 @@ def branch(branch_name):
   Work on any specified branch.
   """
   env.branch = branch_name
-
 
 """
 Commands - setup
@@ -109,18 +98,10 @@ def install_requirements():
   """
   Install the required packages using npm.
   """
-  sudo('npm install pm2@0.8.10 -g')
   with cd('api-server'):
+    sudo('cp ./scripts/%(settings)s_api-server.conf /etc/init/api-server.conf')
+    sudo('cp ./scripts/%(settings)s_cleanup.conf /etc/init/cleanup.conf')
     run('npm install')
-
-def boot():
-  """
-  Start process with pm2
-  """
-  with cd('api-server'):
-    run('NODE_ENV=%(settings)s NODE_PATH=lib pm2 start server.js -n api-server -i 10' % env)
-    run('NODE_ENV=%(settings)s pm2 start scripts/meetyourmaker.js -n cleanup' % env)
-  # run('NODE_ENV=%(settings)s forever start api-server/scripts/refreshcache.js' % env)
 
 def validateNote(input):
   """
@@ -171,29 +152,16 @@ def deploy():
   prompt("your name please: ", "author")
   addNote()
   checkout_latest()
-  track_deployment()
   install_requirements()
-  reboot()
-  # if env.settings is 'integration':
-  #   test_int()
+  track_deployment()
+  restart_service()
 
-def reboot():
+def restart_service():
   """
   Restart the server.
   """
-  if (env.dockerized):
-    sudo("docker stop $(sudo docker ps -q)")
-  else:
-    run('forever stopall || echo not started')
-    run('pm2 kill || echo no pm2')
-    boot()
-
-def test_int():
-  """
-  Restart the server.
-  """
-  with cd('api-server'):
-    run('npm run test-int')
+  sudo('service api-server restart')
+  sudo('service cleanup restart')
 
 """
 Commands - rollback
@@ -211,7 +179,7 @@ def rollback(commit_id):
   checkout_latest()
   git_reset(commit_id)
   install_requirements()
-  reboot()
+  restart_service()
 
 def git_reset(commit_id):
   """
@@ -219,22 +187,3 @@ def git_reset(commit_id):
   """
   env.commit_id = commit_id
   run("cd api-server; git reset --hard %(commit_id)s" % env)
-
-def list():
-  """
-  List processes running inside forever
-  """
-  require('settings', provided_by=[production, integration, staging])
-  run('forever list')
-
-"""
-Deaths, destroyers of worlds
-"""
-def shiva_the_destroyer():
-  """
-  Death Destruction Chaos.
-  """
-  run('forever stop api-server/server.js')
-  run('forever stop api-server/scripts/meetyourmaker.js')
-  # run('forever stop api-server/scripts/refreshcache.js')
-  run('rm -Rf api-server')
