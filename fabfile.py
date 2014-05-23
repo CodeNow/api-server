@@ -99,8 +99,8 @@ def install_requirements():
   Install the required packages using npm.
   """
   with cd('api-server'):
-    sudo('cp ./scripts/%(settings)s_api-server.conf /etc/init/api-server.conf')
-    sudo('cp ./scripts/%(settings)s_cleanup.conf /etc/init/cleanup.conf')
+    sudo('cp ./scripts/%(settings)s_api-server.conf /etc/init/api-server.conf' % env)
+    sudo('cp ./scripts/%(settings)s_cleanup.conf /etc/init/cleanup.conf' % env)
     run('npm install')
 
 def validateNote(input):
