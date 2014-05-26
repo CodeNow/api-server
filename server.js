@@ -1,7 +1,6 @@
 var configs = require('configs');
 var cluster = require('cluster');
 var path = require('path');
-var workers = {};
 var rollbar = require('rollbar');
 var numCPUs = require('os').cpus().length;
 
@@ -20,28 +19,28 @@ if (cluster.isMaster) {
   var apiServer = new api_server();
   apiServer.start(function(err) {
     if (err) {
-      console.error("can not start", err);
+      console.error(new Date(), "can not start", err);
     }
   });
 }
 
 var attachLogs = function(clusters) {
   clusters.on('fork', function(worker) {
-    console.log('CLUSTER: fork worker', worker.id);
+    console.log(new Date(), 'CLUSTER: fork worker', worker.id);
   });
   clusters.on('listening', function(worker, address) {
-    console.log('CLUSTER: listening worker', worker.id,
+    console.log(new Date(), 'CLUSTER: listening worker', worker.id,
       'address', address.address + ":" + address.port);
   });
   clusters.on('exit', function(worker, code, signal) {
-    console.log('CLUSTER: exit worker', worker.id, 'code', code, 'signal', signal);
+    console.log(new Date(), 'CLUSTER: exit worker', worker.id, 'code', code, 'signal', signal);
     clusters.fork();
   });
   clusters.on('online', function(worker) {
-    console.log('CLUSTER: online worker', worker.id);
+    console.log(new Date(), 'CLUSTER: online worker', worker.id);
   });
   clusters.on('disconnect', function(worker) {
-    console.log('CLUSTER: disconnected worker' + worker.id);
+    console.log(new Date(), 'CLUSTER: disconnected worker' + worker.id);
   });
 };
 
@@ -70,18 +69,18 @@ var memoryLeakPatch = function() {
       break;
     }
     cluster.fork();
-    console.log('CLUSTER: workaround Killing worker', worker.id);
+    console.log(new Date(), 'CLUSTER: workaround Killing worker', worker.id);
     worker.disconnect();
     worker.on('error', function(err) {
       rollbar.handleError(err);
-      console.log("error on disconnect", err);
+      console.log(new Date(), "error on disconnect", err);
     });
   }
 };
 
 var workerHandleException = function(worker) {
   worker.process.on('uncaughtException', function() {
-    console.error('WORKER: uncaughtException:', err);
+    console.error(new Date(), 'WORKER: uncaughtException:', err);
     rollbar.handleError(err);
     worker.process.exit(1);
   });
@@ -95,7 +94,7 @@ var masterHandleException = function(err) {
     if (configs.rollbar) {
       rollbar.shutdown();
     }
-    console.error('MASTER: uncaughtException:', err);
+    console.error(new Date(), 'MASTER: uncaughtException:', err);
     rollbar.handleError(err);
     process.exit();
   });
