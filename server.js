@@ -4,26 +4,6 @@ var path = require('path');
 var rollbar = require('rollbar');
 var numCPUs = require('os').cpus().length;
 
-if (cluster.isMaster) {
-  attachLogs(cluster);
-  initExternalServices();
-
-  process.on('uncaughtException', masterHandleException);
-  // Fork workers.
-  for (var i = 0; i < numCPUs; i++) {
-    var worker = cluster.fork();
-    workerHandleExeption(worker);
-  }
-} else {
-  var api_server = require('index');
-  var apiServer = new api_server();
-  apiServer.start(function(err) {
-    if (err) {
-      console.error(new Date(), "can not start", err);
-    }
-  });
-}
-
 var attachLogs = function(clusters) {
   clusters.on('fork', function(worker) {
     console.log(new Date(), 'CLUSTER: fork worker', worker.id);
@@ -99,3 +79,23 @@ var masterHandleException = function(err) {
     process.exit();
   });
 };
+
+if (cluster.isMaster) {
+  attachLogs(cluster);
+  initExternalServices();
+
+  process.on('uncaughtException', masterHandleException);
+  // Fork workers.
+  for (var i = 0; i < numCPUs; i++) {
+    var worker = cluster.fork();
+    workerHandleExeption(worker);
+  }
+} else {
+  var api_server = require('index');
+  var apiServer = new api_server();
+  apiServer.start(function(err) {
+    if (err) {
+      console.error(new Date(), "can not start", err);
+    }
+  });
+}
