@@ -90,6 +90,9 @@ var masterHandleException = function(err) {
     }
     console.error(new Date(), 'MASTER: uncaughtException:', err);
     rollbar.handleError(err);
+    for (var id in cluster.workers) {
+      cluster.workers[id].kill('SIGTERM');
+    }
     process.exit();
   });
 };
