@@ -3,6 +3,7 @@ var cluster = require('cluster');
 var path = require('path');
 var rollbar = require('rollbar');
 var numCPUs = require('os').cpus().length;
+var nodetime = require('nodetime');
 
 var attachLogs = function(clusters) {
   clusters.on('fork', function(worker) {
@@ -26,7 +27,6 @@ var attachLogs = function(clusters) {
 
 var initExternalServices = function() {
   if (configs.nodetime) {
-    var nodetime = require('nodetime');
     nodetime.profile(configs.nodetime);
   }
   if (configs.newrelic) {
@@ -44,17 +44,17 @@ var initExternalServices = function() {
 var memoryLeakPatch = function() {
   // memory leak patch! - start restart timeout
   setInterval(killAndStartNewWorker, configs.workerRestartTime);
+  var onError = function(err) {
+    rollbar.handleError(err);
+    console.log(new Date(), "CLUSTER: error on disconnect", err);
+  };
   function killAndStartNewWorker (message) {
     for (var worker in cluster.workers) {
-      break;
+      cluster.fork();
+      console.log(new Date(), 'CLUSTER: workaround Killing worker', worker.id);
+      worker.disconnect();
+      worker.on('error', onError);
     }
-    cluster.fork();
-    console.log(new Date(), 'CLUSTER: workaround Killing worker', worker.id);
-    worker.disconnect();
-    worker.on('error', function(err) {
-      rollbar.handleError(err);
-      console.log(new Date(), "error on disconnect", err);
-    });
   }
 };
 
