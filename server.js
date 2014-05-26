@@ -4,6 +4,19 @@ var path = require('path');
 var rollbar = require('rollbar');
 var numCPUs = require('os').cpus().length;
 var nodetime = require('nodetime');
+var workers;
+
+var createWorker = function() {
+  var worker = cluster.fork();
+  worker.process.on('uncaughtException', function(err) {
+    console.error(new Date(), 'WORKER: uncaughtException:', err);
+    rollbar.handleError(err);
+    worker.process.exit(1);
+  });
+  workers.push(worker);
+  console.log(new Date(), 'CLUSTER: create new worker', worker.id);
+  return worker;
+};
 
 var attachLogs = function(clusters) {
   clusters.on('fork', function(worker) {
@@ -15,7 +28,12 @@ var attachLogs = function(clusters) {
   });
   clusters.on('exit', function(worker, code, signal) {
     console.log(new Date(), 'CLUSTER: exit worker', worker.id, 'code', code, 'signal', signal);
-    clusters.fork();
+    workers.map(pluck('id')).some(function (workerId, i) {
+      if (workerId === worker.id) {
+        workers.splice(i, 1); // remove worker from workers
+      }
+    });
+    createWorker();
   });
   clusters.on('online', function(worker) {
     console.log(new Date(), 'CLUSTER: online worker', worker.id);
@@ -48,22 +66,12 @@ var memoryLeakPatch = function() {
     rollbar.handleError(err);
     console.log(new Date(), "CLUSTER: error on disconnect", err);
   };
-  function killAndStartNewWorker (message) {
-    for (var worker in cluster.workers) {
-      cluster.fork();
-      console.log(new Date(), 'CLUSTER: workaround Killing worker', worker.id);
-      worker.disconnect();
-      worker.on('error', onError);
-    }
+  function killAndStartNewWorker () {
+    var worker = workers.shift();
+    console.log(new Date(), 'CLUSTER: workaround Killing worker', worker.id);
+    worker.disconnect();
+    worker.on('error', onError);
   }
-};
-
-var workerHandleException = function(worker) {
-  worker.process.on('uncaughtException', function() {
-    console.error(new Date(), 'WORKER: uncaughtException:', err);
-    rollbar.handleError(err);
-    worker.process.exit(1);
-  });
 };
 
 var masterHandleException = function(err) {
@@ -85,9 +93,9 @@ if (cluster.isMaster) {
   initExternalServices();
   masterHandleException();
   // Fork workers.
+  workers = [];
   for (var i = 0; i < numCPUs; i++) {
-    var worker = cluster.fork();
-    workerHandleException(worker);
+    createWorker();
   }
   memoryLeakPatch();
 } else {
