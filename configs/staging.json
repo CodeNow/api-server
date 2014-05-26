@@ -10,7 +10,7 @@
     "ipaddress": "10.0.1.125",
     "port": "6379"
   },
-  "workerRestartTime": 3600000,
+  "workerRestartTime": 60000,
   "port": 3000,
   "ipaddress": "10.0.1.93",
   "maxPageLimit": 200,
