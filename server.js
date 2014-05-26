@@ -83,12 +83,11 @@ var masterHandleException = function(err) {
 if (cluster.isMaster) {
   attachLogs(cluster);
   initExternalServices();
-
-  process.on('uncaughtException', masterHandleException);
+  masterHandleException();
   // Fork workers.
   for (var i = 0; i < numCPUs; i++) {
     var worker = cluster.fork();
-    workerHandleExeption(worker);
+    workerHandleException(worker);
   }
 } else {
   var api_server = require('index');
