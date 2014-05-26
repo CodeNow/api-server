@@ -9,37 +9,23 @@ if (cluster.isMaster) {
   attachLogs(cluster);
   initExternalServices();
 
-  process.on('uncaughtException', function ExceptionListener (err) {
-    if (configs.nodetime) {
-      nodetime.destroy();
-    }
-    if (configs.rollbar) {
-      rollbar.shutdown();
-    }
-    console.error('MASTER: uncaughtException:', err);
-    rollbar.handleError(err);
-  });
+  process.on('uncaughtException', masterHandleException);
   // Fork workers.
   for (var i = 0; i < numCPUs; i++) {
-    cluster.fork();
+    var worker = cluster.fork();
+    workerHandleExeption(worker);
   }
-
 } else {
   var api_server = require('index');
   var apiServer = new api_server();
-  worker.process.on('uncaughtException', function (workerProcess) {
-    console.error('WORKER: uncaughtException:', err);
-    rollbar.handleError(err);
-    process.exit(1);
-  });
-  apiServer.start(function (err) {
+  apiServer.start(function(err) {
     if (err) {
-      console.error("can not start");
+      console.error("can not start", err);
     }
   });
 }
 
-var attachLogs = function (clusters) {
+var attachLogs = function(clusters) {
   clusters.on('fork', function(worker) {
     console.log('CLUSTER: fork worker', worker.id);
   });
@@ -49,7 +35,6 @@ var attachLogs = function (clusters) {
   });
   clusters.on('exit', function(worker, code, signal) {
     console.log('CLUSTER: exit worker', worker.id, 'code', code, 'signal', signal);
-    delete workers[worker.id];
     clusters.fork();
   });
   clusters.on('online', function(worker) {
@@ -60,7 +45,7 @@ var attachLogs = function (clusters) {
   });
 };
 
-var initExternalServices = function () {
+var initExternalServices = function() {
   if (configs.nodetime) {
     var nodetime = require('nodetime');
     nodetime.profile(configs.nodetime);
@@ -77,7 +62,7 @@ var initExternalServices = function () {
   }
 };
 
-var memoryLeakPatch = function  () {
+var memoryLeakPatch = function() {
   // memory leak patch! - start restart timeout
   setInterval(killAndStartNewWorker, configs.workerRestartTime);
   function killAndStartNewWorker (message) {
@@ -85,17 +70,33 @@ var memoryLeakPatch = function  () {
       break;
     }
     cluster.fork();
-    killWorker(worker);
+    console.log('CLUSTER: workaround Killing worker', worker.id);
+    worker.disconnect();
+    worker.on('error', function(err) {
+      rollbar.handleError(err);
+      console.log("error on disconnect", err);
+    });
   }
 };
 
-var killWorker = function (worker, code) {
-  if (!worker) {
-    return;
-  }
-  var maxDrainTime = configs.workerorkerDrainTimeout;
-  console.log('CLUSTER: Killing workerorker', worker.id);
-  setTimeout(worker.kill.bind(worker, code), maxDrainTime);
-  worker.disconnect();
-  worker.on('error', console.error.bind(console));
+var workerHandleException = function(worker) {
+  worker.process.on('uncaughtException', function() {
+    console.error('WORKER: uncaughtException:', err);
+    rollbar.handleError(err);
+    worker.process.exit(1);
+  });
+};
+
+var masterHandleException = function(err) {
+  process.on('uncaughtException', function() {
+    if (configs.nodetime) {
+      nodetime.destroy();
+    }
+    if (configs.rollbar) {
+      rollbar.shutdown();
+    }
+    console.error('MASTER: uncaughtException:', err);
+    rollbar.handleError(err);
+    process.exit();
+  });
 };
