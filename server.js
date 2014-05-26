@@ -70,11 +70,7 @@ var memoryLeakPatch = function() {
   };
   function killAndStartNewWorker () {
     var worker = workers.shift();
-    var drainTime = 60000;
-    setTimeout(function() {
-      console.log('new Date(), "CLUSTER: Killing old worker', worker.id);
-    }, drainTime);
-    console.log(new Date(), 'CLUSTER: workaround Killing worker', worker.id);
+    console.log(new Date(), 'CLUSTER: workaround disconnect worker', worker.id);
     worker.disconnect();
     worker.on('error', onError);
   }
