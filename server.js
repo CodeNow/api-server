@@ -89,6 +89,7 @@ if (cluster.isMaster) {
     var worker = cluster.fork();
     workerHandleException(worker);
   }
+  memoryLeakPatch();
 } else {
   var api_server = require('index');
   var apiServer = new api_server();
