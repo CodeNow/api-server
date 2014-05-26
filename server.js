@@ -4,6 +4,7 @@ var path = require('path');
 var rollbar = require('rollbar');
 var numCPUs = require('os').cpus().length;
 var nodetime = require('nodetime');
+var pluck = require('map-utils').pluck;
 var workers;
 
 var createWorker = function() {
