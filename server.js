@@ -5,6 +5,10 @@ var rollbar = require('rollbar');
 var numCPUs = require('os').cpus().length;
 var nodetime = require('nodetime');
 var pluck = require('map-utils').pluck;
+
+if (configs.newrelic) {
+  require('newrelic');
+}
 var workers;
 
 var createWorker = function() {
@@ -49,9 +53,6 @@ var attachLogs = function(clusters) {
 var initExternalServices = function() {
   if (configs.nodetime) {
     nodetime.profile(configs.nodetime);
-  }
-  if (configs.newrelic) {
-    require('newrelic');
   }
   if (configs.rollbar) {
     rollbar.init(configs.rollbar, {
