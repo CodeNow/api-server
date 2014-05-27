@@ -1,45 +1,116 @@
 var configs = require('configs');
-var api_server = require('index');
 var cluster = require('cluster');
+var path = require('path');
+var rollbar = require('rollbar');
 var numCPUs = require('os').cpus().length;
+var nodetime = require('nodetime');
+var pluck = require('map-utils').pluck;
+var workers;
 
-if (configs.nodetime) {
-  var nodetime = require('nodetime');
-  nodetime.profile(configs.nodetime);
-}
+var createWorker = function() {
+  var worker = cluster.fork();
+  worker.process.on('uncaughtException', function(err) {
+    console.error(new Date(), 'WORKER: uncaughtException:', err);
+    rollbar.handleError(err, function () {
+      worker.process.exit(1);
+    });
+  });
+  workers.push(worker);
+  console.log(new Date(), 'CLUSTER: create new worker', worker.id);
+  return worker;
+};
 
-if (configs.newrelic) {
-  require('newrelic');
-}
+var attachLogs = function(clusters) {
+  clusters.on('fork', function(worker) {
+    console.log(new Date(), 'CLUSTER: fork worker', worker.id);
+  });
+  clusters.on('listening', function(worker, address) {
+    console.log(new Date(), 'CLUSTER: listening worker', worker.id,
+      'address', address.address + ":" + address.port);
+  });
+  clusters.on('exit', function(worker, code, signal) {
+    console.log(new Date(), 'CLUSTER: exit worker', worker.id, 'code', code, 'signal', signal);
+    workers.map(pluck('id')).some(function (workerId, i) {
+      if (workerId === worker.id) {
+        workers.splice(i, 1); // remove worker from workers
+      }
+    });
+    createWorker();
+  });
+  clusters.on('online', function(worker) {
+    console.log(new Date(), 'CLUSTER: online worker', worker.id);
+  });
+  clusters.on('disconnect', function(worker) {
+    console.log(new Date(), 'CLUSTER: disconnected worker', worker.id, "killing now");
+    worker.kill();
+  });
+};
 
-cluster.on('fork', function(worker) {
-  console.log('CLUSTER: fork worker', worker.id);
-});
-cluster.on('listening', function(worker, address) {
-  console.log('CLUSTER: listening worker', worker.id,
-    'address', address.address + ":" + address.port);
-});
-cluster.on('exit', function(worker, code, signal) {
-  console.log('CLUSTER: exit worker', worker.id, 'code', code, 'signal', signal);
-  cluster.fork();
-});
-cluster.on('online', function(worker) {
-  console.log('CLUSTER: online worker', worker.id);
-});
-cluster.on('disconnect', function(worker) {
-  console.log('CLUSTER: disconnected worker' + worker.id);
-});
+var initExternalServices = function() {
+  if (configs.nodetime) {
+    nodetime.profile(configs.nodetime);
+  }
+  if (configs.newrelic) {
+    require('newrelic');
+  }
+  if (configs.rollbar) {
+    rollbar.init(configs.rollbar, {
+      environment: process.env.NODE_ENV || "development",
+      branch: "master",
+      root: path.resolve(__dirname, '..')
+    });
+  }
+};
+
+var memoryLeakPatch = function() {
+  // memory leak patch! - start restart timeout
+  setInterval(killAndStartNewWorker, configs.workerRestartTime);
+  var onError = function(err) {
+    rollbar.handleError(err);
+    console.log(new Date(), "CLUSTER: error on disconnect", err);
+  };
+  function killAndStartNewWorker () {
+    var worker = workers.shift();
+    console.log(new Date(), 'CLUSTER: workaround disconnect worker', worker.id);
+    worker.disconnect();
+    worker.on('error', onError);
+  }
+};
+
+var masterHandleException = function(err) {
+  process.on('uncaughtException', function(err) {
+    if (configs.nodetime) {
+      nodetime.destroy();
+    }
+    if (configs.rollbar) {
+      rollbar.shutdown();
+    }
+    console.error(new Date(), 'MASTER: uncaughtException:', err);
+    rollbar.handleError(err, function() {
+      for (var id in cluster.workers) {
+        cluster.workers[id].kill('SIGTERM');
+      }
+      process.exit();
+    });
+  });
+};
 
 if (cluster.isMaster) {
+  attachLogs(cluster);
+  initExternalServices();
+  masterHandleException();
   // Fork workers.
+  workers = [];
   for (var i = 0; i < numCPUs; i++) {
-    cluster.fork();
+    createWorker();
   }
+  memoryLeakPatch();
 } else {
-  var worker = new api_server();
-  worker.start(function (err) {
+  var api_server = require('index');
+  var apiServer = new api_server();
+  apiServer.start(function(err) {
     if (err) {
-      console.error("can not start");
+      console.error(new Date(), "can not start", err);
     }
   });
 }
