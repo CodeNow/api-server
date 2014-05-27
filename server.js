@@ -11,8 +11,9 @@ var createWorker = function() {
   var worker = cluster.fork();
   worker.process.on('uncaughtException', function(err) {
     console.error(new Date(), 'WORKER: uncaughtException:', err);
-    rollbar.handleError(err);
-    worker.process.exit(1);
+    rollbar.handleError(err, function () {
+      worker.process.exit(1);
+    });
   });
   workers.push(worker);
   console.log(new Date(), 'CLUSTER: create new worker', worker.id);
@@ -77,7 +78,7 @@ var memoryLeakPatch = function() {
 };
 
 var masterHandleException = function(err) {
-  process.on('uncaughtException', function() {
+  process.on('uncaughtException', function(err) {
     if (configs.nodetime) {
       nodetime.destroy();
     }
@@ -85,11 +86,12 @@ var masterHandleException = function(err) {
       rollbar.shutdown();
     }
     console.error(new Date(), 'MASTER: uncaughtException:', err);
-    rollbar.handleError(err);
-    for (var id in cluster.workers) {
-      cluster.workers[id].kill('SIGTERM');
-    }
-    process.exit();
+    rollbar.handleError(err, function() {
+      for (var id in cluster.workers) {
+        cluster.workers[id].kill('SIGTERM');
+      }
+      process.exit();
+    });
   });
 };
 
