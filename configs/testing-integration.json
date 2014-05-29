@@ -51,5 +51,6 @@
     "protocol": "http:",
     "host": "10.0.1.76",
     "port": 7050
-  }
+  },
+  "krainPort": 3000
 }
