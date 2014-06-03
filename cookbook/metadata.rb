@@ -11,5 +11,5 @@ depends 'nodejs'
 depends 'sudo'
 depends 'user'
 
-recipe 'runnable_api-server::default', 'Includes runnable_base::default'
+recipe 'runnable_api-server::default', 'Performs installaion/configuration of api-server and all prerequisites'
 
