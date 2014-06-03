@@ -1,0 +1,43 @@
+DEPENDENCIES
+  api-server
+    path: .
+    metadata: true
+  minitest-handler
+    git: git://github.com/btm/minitest-handler-cookbook.git
+    revision: 112e25b054586785c4c21bc830eb512bfc481c60
+  nodejs
+    git: git://github.com/mdxp/nodejs-cookbook.git
+    revision: e2415cd8c4e03dccf21d7ef6ca31e1c5c81467ca
+  runnable_base
+    git: git@github.com:CodeNow/runnable_base-cookbook.git
+    revision: 0da9d36d55070479cf230501cfc531594f2a37f5
+  sudo
+    git: git://github.com/opscode-cookbooks/sudo.git
+    revision: 8bbdff7302f7a86e18d1a3f029813c665b53b322
+  user
+    git: git://github.com/fnichol/chef-user.git
+    revision: 62e3e2b6848445f80ba1ff22bd82c57c63fa72e5
+
+GRAPH
+  api-server (0.1.1)
+    nodejs (>= 0.0.0)
+    runnable_base (>= 0.0.0)
+    sudo (>= 0.0.0)
+    user (>= 0.0.0)
+  apt (2.4.0)
+  build-essential (2.0.2)
+  chef_handler (1.1.6)
+  minitest-handler (1.2.1)
+    chef_handler (>= 0.0.0)
+  nodejs (1.3.0)
+    apt (>= 0.0.0)
+    build-essential (>= 0.0.0)
+    yum-epel (>= 0.0.0)
+  runnable_base (0.1.1)
+    sudo (>= 0.0.0)
+    user (>= 0.0.0)
+  sudo (2.6.1)
+  user (0.3.1)
+  yum (3.2.0)
+  yum-epel (0.3.6)
+    yum (~> 3.0)

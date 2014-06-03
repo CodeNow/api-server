@@ -1,0 +1,17 @@
+*~
+*#
+.#*
+\#*#
+.*.sw[a-z]
+*.un~
+pkg/
+
+# Berkshelf
+.vagrant
+/cookbooks
+
+# Bundler
+Gemfile.lock
+bin/*
+.bundle/*
+

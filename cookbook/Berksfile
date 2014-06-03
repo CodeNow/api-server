@@ -1,0 +1,11 @@
+source 'https://api.berkshelf.com'
+
+metadata
+
+cookbook 'runnable_base', git: 'git@github.com:CodeNow/runnable_base-cookbook.git'
+
+cookbook 'nodejs', github: 'mdxp/nodejs-cookbook'
+cookbook 'sudo', github: 'opscode-cookbooks/sudo'
+cookbook 'user', github: 'fnichol/chef-user'
+cookbook 'minitest-handler', github: 'btm/minitest-handler-cookbook'
+
