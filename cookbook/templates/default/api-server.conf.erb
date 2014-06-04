@@ -1,0 +1,38 @@
+#!upstart
+description "api server"
+author "Anandkumar"
+
+env NODE_BIN=node
+env APP_DIR=/home/ubuntu/api-server
+env SCRIPT_FILE="server.js" # Entry point for the nodejs app
+env LOG_FILE=/var/log/api-server.log
+env NODE_ENV=<%= @node_env %>
+env NODE_PATH=/home/ubuntu/api-server/lib
+
+start on (local-filesystems and net-device-up IFACE=eth0)
+stop on shutdown
+
+script
+  touch $LOG_FILE
+  chdir $APP_DIR
+  echo $$ > /var/run/api-server.pid
+  exec $NODE_BIN $SCRIPT_FILE >> $LOG_FILE 2>&1
+end script
+
+pre-start script
+  # Date format same as (new Date()).toISOString() for consistency
+  echo "[`date -u +%Y-%m-%dT%T.%3NZ`] (sys) Starting" >> $LOG_FILE
+end script
+
+pre-stop script
+  rm /var/run/api-server.pid
+  echo "[`date -u +%Y-%m-%dT%T.%3NZ`] (sys) Stopping" >> $LOG_FILE
+end script
+
+post-start script
+  echo "===== App restarted =====" >> $LOG_FILE
+end script
+
+respawn
+respawn limit 5 60     # give up restart after 5 respawns in 60 seconds
+

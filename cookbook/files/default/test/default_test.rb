@@ -15,6 +15,7 @@ describe_recipe 'runnable_api-server::default' do
 
   it 'deploys api-server' do
     directory('/home/ubuntu/api-server').must_exist
+    assert false
   end
 
   it 'creates api-server upstart service' do
@@ -23,6 +24,20 @@ describe_recipe 'runnable_api-server::default' do
 
   it 'creates cleanup upstart service' do
     file('/etc/init/cleanup.conf').must_exist
+  end
+
+  it 'starts and enables api-server service' do
+    service('api-server').must_be_running
+    service('api-server').must_be_enabled
+  end
+
+  it 'starts and enables cleanup service' do
+    service('cleanup').must_be_running
+    service('cleanup').must_be_enabled
+  end
+
+  it 'tracks deployment with newrelic' do
+    assert false
   end
 
 end

@@ -12,4 +12,7 @@ include_recipe 'runnable_base'
 include_recipe 'runnable_api-server::nodejs'
 include_recipe 'runnable_api-server::deploy'
 
-include_recipe 'runnable_api-server::newrelic' if node.chef_environment == 'prod'
+case node.chef_environment
+when 'production' 
+  include_recipe 'runnable_api-server::newrelic'
+end 
