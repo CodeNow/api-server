@@ -13,7 +13,7 @@ DEPENDENCIES
     metadata: true
   runnable_base
     git: git@github.com:CodeNow/runnable_base-cookbook.git
-    revision: 0da9d36d55070479cf230501cfc531594f2a37f5
+    revision: 313374b8245e8f1a11a244ebdb5cabc9bd0c5f8e
   sudo
     git: git://github.com/opscode-cookbooks/sudo.git
     revision: 8bbdff7302f7a86e18d1a3f029813c665b53b322
