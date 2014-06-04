@@ -8,8 +8,7 @@ describe_recipe 'runnable_api-server::default' do
   include Chef::Mixin::ShellOut
 
   it 'installs nodejs v0.10.26' do
-    node_version = Mixlib::ShellOut.new('node --version').run_command
-    node_version.run_command
+    node_version = shell_out('node --version')
     assert_equal('v0.10.26\n', node_version.stdout, "Incorrect node version present: #{node_version.stdout}")
   end
 
