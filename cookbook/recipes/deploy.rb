@@ -13,8 +13,8 @@ deploy 'api-server' do
   deploy_to node['runnable_api-server']['deploy_to']
   action :deploy
   notifies :run, 'execute[npm install]', :immediately
-  notifies :create, 'file[api-server]', :immediately
-  notifies :create, 'file[cleanup]', :immediately
+  notifies :create, 'template[/etc/init/api-server.conf]', :immediately
+  notifies :create, 'template[/etc/init/cleanup.conf]', :immediately
 end
 
 execute 'npm install' do
