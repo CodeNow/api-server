@@ -1,4 +1,4 @@
-api-server Cookbook
+runnable_api-server Cookbook
 ===================
 This cookbook configures prerequisites for api-server and deploys it.
 
@@ -10,16 +10,16 @@ Currently none.
 
 Usage
 -----
-#### api-server::default
+#### runnable_api-server::default
 
 e.g.
-Just include `api-server` in your node's `run_list`:
+Just include `runnable_api-server` in your node's `run_list`:
 
 ```json
 {
   "name":"my_node",
   "run_list": [
-    "recipe[api-server]"
+    "recipe[runnable_api-server]"
   ]
 }
 ```
