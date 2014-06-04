@@ -6,8 +6,11 @@ description      'Installs/Configures api-server'
 long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
 version          '0.1.1'
 
+supports 'ubuntu'
+
 depends 'runnable_base'
 depends 'apt'
+depends 'build-essential'
 depends 'nodejs'
 depends 'sudo'
 depends 'user'

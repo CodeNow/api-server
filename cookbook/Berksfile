@@ -5,6 +5,7 @@ metadata
 cookbook 'runnable_base', git: 'git@github.com:CodeNow/runnable_base-cookbook.git'
 
 cookbook 'apt', github: 'opscode-cookbooks/apt'
+cookbook 'build-essential', github: 'opscode-cookbooks/build-essential'
 cookbook 'nodejs', github: 'mdxp/nodejs-cookbook'
 cookbook 'sudo', github: 'opscode-cookbooks/sudo'
 cookbook 'user', github: 'fnichol/chef-user'
