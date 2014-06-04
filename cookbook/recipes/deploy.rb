@@ -11,6 +11,7 @@ deploy 'api-server' do
   repo 'https://github.com/CodeNow/api-server.git'
   branch node['runnable_api-server']['deploy_branch']
   deploy_to node['runnable_api-server']['deploy_to']
+  user node['runnable_api-server']['deploy_user']
   action :deploy
   notifies :run, 'execute[npm install]', :immediately
   notifies :create, 'template[/etc/init/api-server.conf]', :immediately
