@@ -8,7 +8,7 @@
 #
 
 deploy 'api-server' do
-  repo 'https://github.com/CodeNow/api-server.git'
+  repo 'git@github.com:CodeNow/api-server.git'
   branch node['runnable_api-server']['deploy_branch']
   deploy_to node['runnable_api-server']['deploy_to']
   user node['runnable_api-server']['deploy_user']
