@@ -1,6 +1,7 @@
 ---
 driver:
   name: vagrant
+  forward_agent: true
 
 provisioner:
   name: chef_solo
