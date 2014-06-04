@@ -12,6 +12,7 @@ depends 'runnable_base'
 depends 'apt'
 depends 'build-essential'
 depends 'nodejs'
+depends 'ssh_known_hosts'
 depends 'sudo'
 depends 'user'
 
