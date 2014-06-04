@@ -36,6 +36,16 @@ describe_recipe 'runnable_api-server::default' do
     service('cleanup').must_be_enabled
   end
 
+  it 'installs and configures newrelic' do
+    package('newrelic-sysmond').must_be_installed
+    assert false
+  end
+
+  it 'starts and enables newrelic service' do
+    service('newrelic-sysmond').must_be_running
+    service('newrelic-sysmond').must_be_enabled
+  end
+
   it 'tracks deployment with newrelic' do
     assert false
   end

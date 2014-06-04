@@ -35,6 +35,7 @@ platforms:
 suites:
   - name: default
     run_list:
+      - recipe[runnable_base]
       - recipe[runnable_api-server::default]
       - recipe[minitest-handler]
     attributes:
