@@ -26,8 +26,8 @@ describe_recipe 'runnable_api-server::default' do
   end
 
   it 'starts and enables cleanup service' do
-    service('cleanup').must_be_running
     service('cleanup').must_be_enabled
+    shell_out('service cleanup status').stdout.must_match(/^cleanup start\/running, process /)
   end
 
 end
