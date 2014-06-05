@@ -20,13 +20,11 @@ describe_recipe 'runnable_api-server::default' do
     file('/etc/init/cleanup.conf').must_exist
   end
 
-  it 'starts and enables api-server service' do
+  it 'starts api-server service' do
     service('api-server').must_be_running
-    service('api-server').must_be_enabled
   end
 
-  it 'starts and enables cleanup service' do
-    service('cleanup').must_be_enabled
+  it 'starts cleanup service' do
     shell_out('service cleanup status').stdout.must_match(/^cleanup start\/running, process /)
   end
 
