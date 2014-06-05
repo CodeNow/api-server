@@ -49,10 +49,12 @@ end
 
 service 'api-server' do
   provider Chef::Provider::Service::Upstart
+  supports :status => true, :restart => true, :reload => false
   action :enable
 end
 
 service 'cleanup' do
   provider Chef::Provider::Service::Upstart
+  supports :status => true, :restart => true, :reload => false
   action :enable
 end
