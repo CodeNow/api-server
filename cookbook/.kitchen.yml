@@ -5,6 +5,7 @@ driver:
 
 provisioner:
   name: chef_solo
+  environments_path: 'files/default/test/environments'
 
 platforms:
   - name: ubuntu-12.04
@@ -35,6 +36,10 @@ platforms:
 
 suites:
   - name: default
+    provisioner:
+      solo_rb:
+        environment: integration
+
     run_list:
       - recipe[runnable_base]
       - recipe[runnable_api-server::default]

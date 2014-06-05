@@ -7,6 +7,6 @@
 # All rights reserved - Do Not Redistribute
 #
 
-node.set['nodejs']['version'] = '0.10.26'
+node.set['nodejs']['version'] = '0.10.28'
 include_recipe 'nodejs'
 

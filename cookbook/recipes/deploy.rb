@@ -24,7 +24,9 @@ end
 
 execute 'npm install' do
   cwd "#{node['runnable_api-server']['deploy']['deploy_path']}/current"
-  action :run
+  action :nothing
+  notifies :restart, 'service[api-server]', :delayed
+  notifies :restart, 'service[cleanup]', :delayed
 end
 
 template '/etc/init/api-server.conf' do
@@ -46,9 +48,11 @@ template '/etc/init/cleanup.conf' do
 end
 
 service 'api-server' do
+  provider Chef::Provider::Service::Upstart
   action :enable
 end
 
 service 'cleanup' do
+  provider Chef::Provider::Service::Upstart
   action :enable
 end
