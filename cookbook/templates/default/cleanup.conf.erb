@@ -3,7 +3,7 @@ description "cleanup script"
 author "Anandkumar"
 
 env NODE_BIN=node
-env APP_DIR=/home/ubuntu/api-server
+env APP_DIR=<%= @deploy_path %>
 env SCRIPT_FILE=scripts/meetyourmaker.js # Entry point for the nodejs app
 env LOG_FILE=/var/log/cleanup.log
 env NODE_ENV=<%= @node_env %>

@@ -13,7 +13,7 @@ describe_recipe 'runnable_api-server::default' do
   end
 
   it 'deploys api-server' do
-    directory('/home/ubuntu/api-server').must_exist
+    directory('/opt/api-server').must_exist
     assert false
   end
 

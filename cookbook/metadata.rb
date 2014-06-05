@@ -18,23 +18,11 @@ depends 'user'
 
 recipe 'runnable_api-server::default', 'Performs installaion/configuration of api-server and all prerequisites'
 
-attribute 'runnable_api-server/deploy/deploy_branch',
-  :display_name => 'api-server git branch',
-  :description => 'The branch of the api-server git repository which will be deployed',
+attribute 'runnable_api-server/deploy/deploy_path',
+  :display_name => 'deploy path',
+  :description => 'The full directory path where api-server will be deployed',
   :type => 'string',
-  :default => 'master'
-
-attribute 'runnable_api-server/deploy/deploy_to',
-  :display_name => 'deploy directory',
-  :description => 'The target directory where api-server will be deployed',
-  :type => 'string',
-  :default => '/home/ubuntu/api-server'
-
-attribute 'runnable_api-server/deploy/deploy_user',
-  :display_name => 'api-server deploy user',
-  :description => 'The user which will run api-server',
-  :type => 'string',
-  :default => 'ubuntu'
+  :default => '/opt/api-server'
 
 attribute 'runnable_api-server/newrelic/application_id',
   :display_name => 'newrelic application_id',

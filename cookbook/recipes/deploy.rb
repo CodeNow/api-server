@@ -7,11 +7,15 @@
 # All rights reserved - Do Not Redistribute
 #
 
-deploy 'api-server' do
+deploy node['runnable_api-server']['deploy']['deploy_path'] do
   repo 'git@github.com:CodeNow/api-server.git'
-  branch node['runnable_api-server']['deploy_branch']
-  deploy_to node['runnable_api-server']['deploy_to']
-  user node['runnable_api-server']['deploy_user']
+  branch 'master'
+  deploy_to node['runnable_api-server']['deploy']['deploy_path']
+  migrate false
+  create_dirs_before_symlink []
+  purge_before_symlink []
+  symlink_before_migrate({})
+  symlinks({})
   action :deploy
   notifies :run, 'execute[npm install]', :immediately
   notifies :create, 'template[/etc/init/api-server.conf]', :immediately
@@ -19,18 +23,24 @@ deploy 'api-server' do
 end
 
 execute 'npm install' do
-  cwd node['runnable_api-server']['deploy_to']
+  cwd "#{node['runnable_api-server']['deploy']['deploy_path']}/current"
   action :run
 end
 
 template '/etc/init/api-server.conf' do
-  variables({:node_env => node.chef_environment})
+  variables({
+    :node_env => node.chef_environment,
+    :deploy_path => "#{node['runnable_api-server']['deploy']['deploy_path']}/current"
+  })
   action :create
   notifies :restart, 'service[api-server]', :immediately
 end
 
 template '/etc/init/cleanup.conf' do
-  variables({:node_env => node.chef_environment})
+  variables({
+    :node_env => node.chef_environment,
+    :deploy_path => "#{node['runnable_api-server']['deploy']['deploy_path']}/current"
+  })
   action :create
   notifies :restart, 'service[cleanup]', :immediately
 end
