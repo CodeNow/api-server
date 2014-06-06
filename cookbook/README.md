@@ -33,9 +33,12 @@ Contributing
 
 3. Write tests for your change (if applicable)
 
-4. Run the tests, ensuring they all pass
+4. Create a new release branch of the cookbook. Increment the version number in `metadata.rb`. Release versions should follow semver practices, ending in even numbers. Merge in all pending changes into the release branch. 
 
-5. Submit a Pull Request using Github
+5. Run the tests, ensuring they all pass
+
+6. Submit a Pull Request using Github, for the master branch to pull from the release branch.
+
 
 Testing
 -------
