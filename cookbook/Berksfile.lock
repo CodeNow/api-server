@@ -4,7 +4,7 @@ DEPENDENCIES
     revision: ac1917c66a9d67fb4a0afeffaa92195b7385887e
   build-essential
     git: git://github.com/opscode-cookbooks/build-essential.git
-    revision: cb9201a6cf57e15c4995303f7e4df2dea462c3a6
+    revision: 400968913bfa8a4a5c9783b383c3b63899f2fe72
   minitest-handler
     git: git://github.com/btm/minitest-handler-cookbook.git
     revision: 112e25b054586785c4c21bc830eb512bfc481c60
@@ -16,7 +16,7 @@ DEPENDENCIES
     metadata: true
   runnable_base
     git: git@github.com:CodeNow/runnable_base-cookbook.git
-    revision: 5496d048bef1e631ee2e898c241d67d183e70956
+    revision: 03b936c57be2eb179a077aca909a8b802c0f54d4
   ssh_known_hosts
     git: git://github.com/opscode-cookbooks/ssh_known_hosts.git
     revision: fe2110f4840e7b02fc33ae179a559fed7299fb30
@@ -29,8 +29,12 @@ DEPENDENCIES
 
 GRAPH
   apt (2.4.1)
-  build-essential (2.0.3)
+  build-essential (2.0.5)
   chef_handler (1.1.6)
+  datadog (1.2.0)
+    apt (>= 0.0.0)
+    chef_handler (~> 1.1.0)
+    yum (>= 0.0.0)
   minitest-handler (1.2.1)
     chef_handler (>= 0.0.0)
   nodejs (1.3.0)
@@ -46,9 +50,10 @@ GRAPH
     ssh_known_hosts (>= 0.0.0)
     sudo (>= 0.0.0)
     user (>= 0.0.0)
-  runnable_base (0.1.1)
+  runnable_base (0.1.2)
     apt (>= 0.0.0)
     build-essential (>= 0.0.0)
+    datadog (>= 0.0.0)
     ssh_known_hosts (>= 0.0.0)
     sudo (>= 0.0.0)
     user (>= 0.0.0)
