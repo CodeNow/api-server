@@ -7,6 +7,30 @@
 # All rights reserved - Do Not Redistribute
 #
 
+cookbook_file '/root/.ssh/runnable_api-server' do
+  source 'runnable_api-server.key'
+  owner 'root'
+  group 'root'
+  mode 0600
+  action :create
+  notifies :run, 'execute[ssh-add cookbook deploy key]', :delayed
+end
+
+cookbook_file '/root/.ssh/runnable_api-server.pub' do
+  source 'runnable_api-server.key.pub'
+  owner 'root'
+  group 'root'
+  mode 0600
+  action :create
+  notifies :run, 'execute[ssh-add cookbook deploy key]', :delayed
+end
+
+execute 'ssh-add cookbook deploy key' do
+  command 'ssh-add /root/.ssh/runnable_api-server'
+  action :nothing
+  notifies :deploy, "deploy[#{node['runnable_api-server']['deploy']['deploy_path']}]", :immediately
+end
+
 deploy node['runnable_api-server']['deploy']['deploy_path'] do
   repo 'git@github.com:CodeNow/api-server.git'
   branch 'master'
@@ -16,7 +40,7 @@ deploy node['runnable_api-server']['deploy']['deploy_path'] do
   purge_before_symlink []
   symlink_before_migrate({})
   symlinks({})
-  action :deploy
+  action :nothing
   notifies :run, 'execute[npm install]', :immediately
   notifies :create, 'template[/etc/init/api-server.conf]', :immediately
   notifies :create, 'template[/etc/init/cleanup.conf]', :immediately
