@@ -7,6 +7,14 @@
 # All rights reserved - Do Not Redistribute
 #
 
+directory '/root/.ssh' do
+  owner 'root'
+  group 'root'
+  mode 0700
+  action :create_if_missing
+  notifies :create, 'cookbook_file[/root/.ssh/runnable_api-server]', :immediately
+end
+
 cookbook_file '/root/.ssh/runnable_api-server' do
   source 'runnable_api-server.key'
   owner 'root'
