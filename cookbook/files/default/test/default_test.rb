@@ -12,6 +12,11 @@ describe_recipe 'runnable_api-server::default' do
     assert_equal("v0.10.28\n", node_version.stdout, "Incorrect node version present: #{node_version.stdout}")
   end
 
+  it 'creates github ssh deploy key files' do
+    file('/root/.ssh/runnable_api-server').must_exist
+    file('/root/.ssh/runnable_api-server.pub').must_exist
+  end
+
   it 'creates api-server upstart service' do
     file('/etc/init/api-server.conf').must_exist
   end
