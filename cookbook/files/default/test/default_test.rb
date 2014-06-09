@@ -26,11 +26,11 @@ describe_recipe 'runnable_api-server::default' do
   end
 
   it 'starts api-server service' do
-    service('api-server').must_be_running
+    shell_out('service api-server status').stdout.must_match(/^api-server start\/running, process [0-9]*$/)
   end
 
   it 'starts cleanup service' do
-    shell_out('service cleanup status').stdout.must_match(/^cleanup start\/running, process /)
+    shell_out('service cleanup status').stdout.must_match(/^cleanup start\/running, process [0-9]*$/)
   end
 
 end
