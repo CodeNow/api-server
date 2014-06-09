@@ -11,7 +11,7 @@ directory '/root/.ssh' do
   owner 'root'
   group 'root'
   mode 0700
-  action :create_if_missing
+  action :create
   notifies :create, 'cookbook_file[/root/.ssh/runnable_api-server]', :immediately
 end
 
