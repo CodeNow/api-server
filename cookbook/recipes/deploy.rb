@@ -21,6 +21,7 @@ cookbook_file '/root/.ssh/runnable_api-server' do
   group 'root'
   mode 0600
   action :create
+  notifies :create, 'cookbook_file[/root/.ssh/runnable_api-server.pub]', :immediately
   notifies :run, 'execute[ssh-add cookbook deploy key]', :delayed
 end
 
@@ -30,7 +31,13 @@ cookbook_file '/root/.ssh/runnable_api-server.pub' do
   group 'root'
   mode 0600
   action :create
+  notifies :run, 'execute[ssh-agent]', :immediately
   notifies :run, 'execute[ssh-add cookbook deploy key]', :delayed
+end
+
+execute 'ssh-agent' do
+  action :nothing
+  notifies :run, 'execute[ssh-add cookbook deploy key]', :immediately
 end
 
 execute 'ssh-add cookbook deploy key' do
