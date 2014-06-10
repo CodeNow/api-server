@@ -17,7 +17,7 @@ apt_repository 'mongodb' do
   notifies :install, 'package[mongodb-10gen-server]'
 end
 
-package 'mongodb-10gen'
+package 'mongodb-10gen' do
   action :install
   notifies :create, 'template[/etc/mongodb.conf]', :immediately
 end
