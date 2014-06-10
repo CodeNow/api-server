@@ -14,7 +14,7 @@ apt_repository 'mongodb' do
   keyserver 'hkp://keyserver.ubuntu.com:80'
   key '7F0CEB10'
   action :add
-  notifies :install, 'package[mongodb-10gen-server]'
+  notifies :install, 'package[mongodb-10gen]'
 end
 
 package 'mongodb-10gen' do
