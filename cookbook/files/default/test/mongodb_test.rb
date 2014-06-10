@@ -8,7 +8,7 @@ describe_recipe 'runnable_api-server::mongodb' do
   include Chef::Mixin::ShellOut
 
   it 'installs mongodb' do
-    package('mongodb').must_be_installed
+    package('mongodb-10gen').must_be_installed
   end
 
   it 'configures mongodb' do
