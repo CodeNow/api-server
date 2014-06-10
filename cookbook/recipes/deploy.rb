@@ -98,7 +98,7 @@ end
 
 execute 'smoke test' do
   command 'npm test'
-  cwd node['runnable_api-server']['deploy']['deploy_path']
+  cwd "#{node['runnable_api-server']['deploy']['deploy_path']}/current"
   action :run
   subscribes :run, 'service[api-server]', :delayed
   subscribes :run, 'service[cleanup]', :delayed
