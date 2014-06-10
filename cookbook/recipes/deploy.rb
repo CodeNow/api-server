@@ -86,6 +86,7 @@ end
 service 'api-server' do
   provider Chef::Provider::Service::Upstart
   supports :status => true, :restart => true, :reload => false
+  notifies :enable, 'service[cleanup]', :immediately
   action :enable
 end
 
@@ -94,3 +95,11 @@ service 'cleanup' do
   supports :status => true, :restart => true, :reload => false
   action :enable
 end
+
+execute 'smoke test' do
+  command 'npm test'
+  cwd node['runnable_api-server']['deploy']['deploy_path']
+  action :run
+  subscribes :run, 'service[api-server]', :delayed
+  subscribes :run, 'service[cleanup]', :delayed
+end 
