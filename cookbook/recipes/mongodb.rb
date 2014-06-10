@@ -27,7 +27,7 @@ template '/etc/mongodb.conf' do
   variables({
     :dbpath => '/var/lib/mongodb',
     :logpath => '/var/log/mongodb/mongodb.log',
-    :replSet => 'rs0'
+    :replSet => nil
   })
   action :create
   notifies :restart, 'service[mongodb]', :immediately
