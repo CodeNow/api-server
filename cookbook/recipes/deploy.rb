@@ -21,8 +21,8 @@ cookbook_file '/root/.ssh/runnable_api-server' do
   group 'root'
   mode 0600
   action :create
+  notifies :deploy, "deploy[#{node['runnable_api-server']['deploy']['deploy_path']}]", :delayed
   notifies :create, 'cookbook_file[/root/.ssh/runnable_api-server.pub]', :immediately
-  notifies :run, 'execute[ssh-add cookbook deploy key]', :delayed
 end
 
 cookbook_file '/root/.ssh/runnable_api-server.pub' do
@@ -31,23 +31,20 @@ cookbook_file '/root/.ssh/runnable_api-server.pub' do
   group 'root'
   mode 0600
   action :create
-  notifies :run, 'execute[ssh-agent]', :immediately
-  notifies :run, 'execute[ssh-add cookbook deploy key]', :delayed
+  notifies :deploy, "deploy[#{node['runnable_api-server']['deploy']['deploy_path']}]", :delayed
 end
 
-execute 'ssh-agent' do
-  action :nothing
-  notifies :run, 'execute[ssh-add cookbook deploy key]', :immediately
-end
-
-execute 'ssh-add cookbook deploy key' do
-  command 'ssh-add /root/.ssh/runnable_api-server'
-  action :nothing
-  notifies :deploy, "deploy[#{node['runnable_api-server']['deploy']['deploy_path']}]", :immediately
+cookbook_file '/tmp/git_sshwrapper.sh' do
+  source 'git_sshwrapper.sh'
+  owner 'root'
+  group 'root'
+  mode 0755
+  action :create
 end
 
 deploy node['runnable_api-server']['deploy']['deploy_path'] do
   repo 'git@github.com:CodeNow/api-server.git'
+  git_ssh_wrapper '/tmp/git_sshwrapper.sh'
   branch 'master'
   deploy_to node['runnable_api-server']['deploy']['deploy_path']
   migrate false
@@ -55,7 +52,7 @@ deploy node['runnable_api-server']['deploy']['deploy_path'] do
   purge_before_symlink []
   symlink_before_migrate({})
   symlinks({})
-  action :nothing
+  action :deploy
   notifies :run, 'execute[npm install]', :immediately
   notifies :create, 'template[/etc/init/api-server.conf]', :immediately
   notifies :create, 'template[/etc/init/cleanup.conf]', :immediately
