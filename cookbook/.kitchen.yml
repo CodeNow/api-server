@@ -52,6 +52,3 @@ suites:
       - recipe[runnable_api-server::redis]
       - recipe[minitest-handler]
     attributes:
-
-
-
