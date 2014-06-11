@@ -33,4 +33,8 @@ describe_recipe 'runnable_api-server::default' do
     shell_out('service cleanup status').stdout.must_match(/^cleanup start\/running, process [0-9]*$/)
   end
 
+  it 'listens on port 3480' do
+    assert shell_out('lsof -n -i :3480').exitstatus == 0
+  end
+
 end
