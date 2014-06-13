@@ -73,7 +73,7 @@ describe('Projects - /projects', function () {
         done();
       });
     });
-    it('should all the projects!', function (done) {
+    it('should all the projects!' /* are belong to us */, function (done) {
       var query = { qs: {}};
       ctx.user2.fetchProjects(query, function (err, body) {
         if (err) { done(err); }
