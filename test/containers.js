@@ -292,6 +292,7 @@ describe('Containers', function () {
           .expectBody('owner', this.user._id)
           .expectBody('servicesToken')
           .expectBody('saved', false)
+          .expectBody('memoryLimit', configs.memoryLimit)
           .expectBody(function (body) {
             body.should.not.have.property('files');
           })
