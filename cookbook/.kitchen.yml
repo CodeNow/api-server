@@ -1,7 +1,9 @@
 ---
 driver:
-  name: vagrant
-  forward_agent: true
+  name: docker
+  socket: <%= ENV['DOCKER_HOST'] %>
+  binary: <%= ENV['DOCKER_BINARY'] %>
+  privileged: true
 
 provisioner:
   name: chef_solo
@@ -10,13 +12,9 @@ provisioner:
 platforms:
   - name: ubuntu-12.04
     driver_config:
-      box: opscode-ubuntu-12.04
-      box_url: http://opscode-vm-bento.s3.amazonaws.com/vagrant/virtualbox/opscode_ubuntu-12.04_chef-provisionerless.box
       require_chef_omnibus: latest
   - name: ubuntu-14.04
     driver_config:
-      box: opscode-ubuntu-14.04
-      box_url: http://opscode-vm-bento.s3.amazonaws.com/vagrant/virtualbox/opscode_ubuntu-14.04_chef-provisionerless.box
       require_chef_omnibus: latest
 
 suites:
