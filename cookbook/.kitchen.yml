@@ -26,7 +26,7 @@ suites:
     run_list:
       - recipe[runnable_base]
       - recipe[runnable_api-server::mongodb]
-      - recipe[runnable_api-server::redis]
+      - recipe[runnable_base::redis]
       - recipe[runnable_api-server::default]
       - recipe[minitest-handler]
     attributes:
@@ -47,6 +47,6 @@ suites:
         environment: integration
 
     run_list:
-      - recipe[runnable_api-server::redis]
+      - recipe[runnable_base::redis]
       - recipe[minitest-handler]
     attributes:
