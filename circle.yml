@@ -10,3 +10,7 @@ test:
   override:
     - npm test
     - npm run coverage
+    - bundle exec rake test:
+      pwd: cookbook
+      timeout: 99999
+      branch: /(.*chef.*)|(master)/
