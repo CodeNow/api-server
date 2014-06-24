@@ -1,19 +1,21 @@
 ---
 driver:
-  name: docker
-  socket: <%= ENV['DOCKER_HOST'] %>
-  binary: <%= ENV['DOCKER_BINARY'] %>
-  privileged: true
+   name: ec2
+   aws_access_key_id: <%= ENV['aws_access_key_id'] %>
+   aws_secret_access_key: <%= ENV['aws_secret_access_key'] %>
+   aws_ssh_key_id: <%= ENV['aws_ssh_key_id'] %>
+   region: 'us-west-1'
+   availability_zone: 'us-west-1c'
 
 provisioner:
   name: chef_solo
   environments_path: 'files/default/test/environments'
 
 platforms:
-  - name: ubuntu-12.04
-    driver_config:
-      require_chef_omnibus: latest
   - name: ubuntu-14.04
+     driver:
+       image_id: 'ami-a26265e7'
+       username: ubuntu
     driver_config:
       require_chef_omnibus: latest
 
