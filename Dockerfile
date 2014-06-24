@@ -3,7 +3,7 @@
 #
 #
 # Pull base image.
-FROM 54.193.225.22:5000/api_base
+FROM 54.176.97.94:5000/api_base
 # Download API-Server Repo
 RUN eval $(ssh-agent) > /dev/null && ssh-add /.ssh/id_rsa && git clone git@github.com:CodeNow/api-server.git 
 
