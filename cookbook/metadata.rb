@@ -10,10 +10,6 @@ supports 'ubuntu'
 
 depends 'runnable_base'
 depends 'apt'
-depends 'build-essential'
-depends 'ssh_known_hosts'
-depends 'sudo'
-depends 'user'
 
 recipe 'runnable_api-server::default', 'Performs installaion/configuration of api-server and all prerequisites'
 
