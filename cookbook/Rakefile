@@ -1,0 +1,44 @@
+require 'bundler/setup'
+
+task :default => [:list]
+
+desc 'Lists all the tasks'
+task :list do
+  puts "Tasks: \n- #{(Rake::Task.tasks).join("\n- ")}"
+end
+
+desc 'Prepare environment variables'
+task :prepare_env do
+  ENV['DOCKER_BINARY'] = 'docker.io'
+  ENV['DOCKER_HOST'] = 'unix:///var/run/docker.sock'
+end
+
+desc 'Bundle install'
+task :bundle_install do
+  sh 'bundle install'
+end
+
+desc 'Check ruby syntax of *.rb in the current cookbook'
+task :check_ruby_syntax do
+  sh 'find ./ -name *.rb -exec ruby -c {} \;'
+end
+
+desc 'Run foodcritic on the current cookbook'
+task :foodcritic do
+  sh 'bundle exec foodcritic -f any .'
+end
+
+desc 'Run kitchen test'
+task :kitchen_test do
+  sh 'bundle exec kitchen test'
+end
+
+desc 'Run tests with test-kitchen'
+task :test do
+  Rake::Task[:prepare_env].execute
+  Rake::Task[:bundle_install].execute
+  Rake::Task[:check_ruby_syntax].execute
+  Rake::Task[:foodcritic].execute
+  Rake::Task[:kitchen_test].execute
+end
+
