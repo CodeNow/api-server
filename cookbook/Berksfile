@@ -6,7 +6,6 @@ cookbook 'runnable_base', git: 'git@github.com:CodeNow/runnable_base-cookbook.gi
 
 cookbook 'apt', github: 'opscode-cookbooks/apt'
 cookbook 'build-essential', github: 'opscode-cookbooks/build-essential'
-cookbook 'nodejs', github: 'mdxp/nodejs-cookbook'
 cookbook 'ssh_known_hosts', github: 'opscode-cookbooks/ssh_known_hosts'
 cookbook 'sudo', github: 'opscode-cookbooks/sudo'
 cookbook 'user', github: 'fnichol/chef-user'
