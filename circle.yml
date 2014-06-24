@@ -6,11 +6,11 @@ dependencies:
     - nvm install 0.10.24
     - nvm alias default 0.10.24
     - npm install
-    - 'echo "$CIRCLE_BRANCH" | grep -q -w -P "(.*chef.*)|(master)" && berks install':
-        pwd: cookbook
     - 'echo "$CIRCLE_BRANCH" | grep -q -w -P "(.*chef.*)|(master)" && bundle check --path=vendor/bundle || bundle install --path=vendor/bundle  --clean':
         pwd: cookbook
         timeout: 99999
+    - 'echo "$CIRCLE_BRANCH" | grep -q -w -P "(.*chef.*)|(master)" && bundle exec berks install':
+        pwd: cookbook
 test:
   override:
     - npm test
