@@ -13,9 +13,9 @@ provisioner:
 
 platforms:
   - name: ubuntu-14.04
-     driver:
-       image_id: 'ami-a26265e7'
-       username: ubuntu
+    driver:
+      image_id: 'ami-a26265e7'
+      username: ubuntu
     driver_config:
       require_chef_omnibus: latest
 
