@@ -7,14 +7,14 @@ dependencies:
     - nvm alias default 0.10.24
     - npm install
     - bundle check --path=vendor/bundle || bundle install --path=vendor/bundle  --clean:
-      pwd: cookbook
-      timeout: 99999
-      branch: /(master)|(.*chef.*)/
+        pwd: cookbook
+        timeout: 99999
+        branch: /(master)|(.*chef.*)/
 test:
   override:
     - npm test
     - npm run coverage
     - bundle exec rake test:
-      pwd: cookbook
-      timeout: 99999
-      branch: /(master)|(.*chef.*)/
+        pwd: cookbook
+        timeout: 99999
+        branch: /(master)|(.*chef.*)/
