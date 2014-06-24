@@ -6,15 +6,13 @@ dependencies:
     - nvm install 0.10.24
     - nvm alias default 0.10.24
     - npm install
-    - 'bundle check --path=vendor/bundle || bundle install --path=vendor/bundle  --clean':
+    - 'echo "$CIRCLE_BRANCH" | grep -q -w -P "(.*chef.*)|(master)" && bundle check --path=vendor/bundle || bundle install --path=vendor/bundle  --clean':
         pwd: cookbook
         timeout: 99999
-        branch: /(master)|(.*chef.*)/
 test:
   override:
     - npm test
     - npm run coverage
-    - bundle exec rake test:
+    - 'echo "$CIRCLE_BRANCH" | grep -q -w -P "(.*chef.*)|(master)" && bundle exec rake test':
         pwd: cookbook
         timeout: 99999
-        branch: /(master)|(.*chef.*)/
