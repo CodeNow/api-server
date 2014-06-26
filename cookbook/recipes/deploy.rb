@@ -42,18 +42,10 @@ cookbook_file '/tmp/git_sshwrapper.sh' do
   action :create
 end
 
-
-deploy_branch = case node.chef_environment
-when 'staging'
-  'master'
-when 'production'
-  'release_branch'
-end
-
 deploy node['runnable_api-server']['deploy']['deploy_path'] do
   repo 'git@github.com:CodeNow/api-server.git'
   git_ssh_wrapper '/tmp/git_sshwrapper.sh'
-  branch 'master'
+  branch node['runnable_api-server']['deploy']['deploy_branch']
   deploy_to node['runnable_api-server']['deploy']['deploy_path']
   migrate false
   create_dirs_before_symlink []
