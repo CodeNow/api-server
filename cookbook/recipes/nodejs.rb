@@ -7,6 +7,5 @@
 # All rights reserved - Do Not Redistribute
 #
 
-node.set['nodejs']['version'] = '0.10.28'
-include_recipe 'runnable_base::nodejs'
-
+node.set['runnable_nodejs']['version'] = '0.10.28'
+include_recipe 'runnable_nodejs'
