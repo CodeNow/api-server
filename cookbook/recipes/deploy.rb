@@ -7,6 +7,8 @@
 # All rights reserved - Do Not Redistribute
 #
 
+package 'git'
+
 directory '/root/.ssh' do
   owner 'root'
   group 'root'
