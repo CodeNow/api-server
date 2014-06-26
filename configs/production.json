@@ -30,7 +30,7 @@
       "Draft Runnables": "/users/me/runnables"
     }
   },
-  "rollbar": "119509f9ba314df8a9ffbaf7b4812fb6",
+  "rollbar": "f35b40b711d246bda76a23d1cda74d5b",
   "dockerRegistry": "registry.runnable.com",
   "runnable_access_timeout": "5 seconds",
   "logExpress": true,
