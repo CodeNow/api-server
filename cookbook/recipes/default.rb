@@ -7,8 +7,6 @@
 # All rights reserved - Do Not Redistribute
 #
 
-include_recipe 'runnable_base'
-
 include_recipe 'runnable_api-server::nodejs'
 include_recipe 'runnable_api-server::deploy'
 
