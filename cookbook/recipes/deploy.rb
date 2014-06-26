@@ -63,8 +63,8 @@ execute 'npm install' do
   action :nothing
   notifies :restart, 'service[api-server]', :delayed
   notifies :restart, 'service[cleanup]', :delayed
-  notifies :create, 'template[/etc/init/api-server.conf'], :immediately
-  notifies :create, 'template[/etc/init/cleanup.conf'], :immediately
+  notifies :create, 'template[/etc/init/api-server.conf]', :immediately
+  notifies :create, 'template[/etc/init/cleanup.conf]', :immediately
 end
 
 template '/etc/init/api-server.conf' do
