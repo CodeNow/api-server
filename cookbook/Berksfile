@@ -6,4 +6,8 @@ cookbook 'runnable_nodejs', git: 'git@github.com:CodeNow/runnable_nodejs-cookboo
 
 cookbook 'apt', github: 'opscode-cookbooks/apt'
 
-cookbook 'minitest-handler', github: 'btm/minitest-handler-cookbook'
+group :integration do
+  cookbook 'runnable_base', git: 'git@github.com:CodeNow/runnable_base-cookbook.git'
+  cookbook 'chef-solo-search', github: 'edelight/chef-solo-search'  
+  cookbook 'minitest-handler', github: 'btm/minitest-handler-cookbook'
+end
