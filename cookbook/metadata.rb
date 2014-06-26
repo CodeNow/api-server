@@ -9,6 +9,8 @@ version          '0.1.7'
 supports 'ubuntu'
 
 depends 'runnable_nodejs'
+depends 'runnable_redis'
+
 depends 'apt'
 
 recipe 'runnable_api-server::default', 'Performs installaion/configuration of api-server and all prerequisites'

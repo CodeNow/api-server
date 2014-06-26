@@ -3,11 +3,11 @@ source 'https://api.berkshelf.com'
 metadata
 
 cookbook 'runnable_nodejs', git: 'git@github.com:CodeNow/runnable_nodejs-cookbook.git'
+cookbook 'runnable_redis', git: 'git@github.com:CodeNow/runnable_redis-cookbook.git'
 
 cookbook 'apt', github: 'opscode-cookbooks/apt'
 
 group :integration do
-  cookbook 'runnable_base', git: 'git@github.com:CodeNow/runnable_base-cookbook.git'
   cookbook 'chef-solo-search', github: 'edelight/chef-solo-search'  
   cookbook 'minitest-handler', github: 'btm/minitest-handler-cookbook'
 end
