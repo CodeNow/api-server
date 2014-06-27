@@ -1,32 +1,52 @@
 {
+  // psetex for redis key
   "tokenExpires": "1 year",
+  // salt used for user password when registering
   "passwordSalt" : "$up3r,$3<r3t",
+  // uri for mongo db server
   "mongo": "mongodb://10.0.1.47:27017/runnable2",
+  // host information for redis server
   "redis": {
     "ipaddress": "10.0.1.20",
     "port": "6379"
   },
+  // interval to restart app (fix mem leak)
   "workerRestartTime": 3600000,
+  // new relic configs
   "newrelic": {
     "name": "api-production",
     "key": "338516e0826451c297d44dc60aeaf0a0ca4bfead"
   },
+  // port this app listens on
   "port": 3000,
+  // ipaddres this app listens on
   "ipaddress": "10.0.1.54",
+  // max limit pages returned from query
   "maxPageLimit": 200,
+  // default limit pages returned from query
   "defaultPageLimit": 25,
+  // auth key for rollbar
   "rollbar": "f35b40b711d246bda76a23d1cda74d5b",
+  // url of registry server
   "dockerRegistry": "registry.runnable.com",
+  // add logging to express
   "logExpress": true,
+  // throw errors
   "throwErrors": false,
+  // auth for cleanup script
   "adminAuth": {
     "email": "tjadmin",
     "password": "mehta"
   },
+  // cleanup script run interval
   "cleanInterval": "3 hours",
+  // time to gather image cache
   "cacheRefreshInterval": "60 minutes",
+  // time before non-saved container is considered garbage
   "containerTimeout": "5 minutes",
+  // domain app runs on
   "domain": "runnable.com",
+  // keys for mailchimp
   "mailchimp": {
     "key":  "5fb2e67f84c1be89cf4ddf2252fc3de3-us5",
     "lists": {
@@ -34,6 +54,7 @@
       "contact": "43330e29a9"
     }
   },
+  // settings for mailchip to send mail
   "SES": {
     "sendMail": true,
     "auth": {
@@ -44,19 +65,27 @@
     "replyTo": "Feedback <feedback@runnable.mail.intercom.io>",
     "moderators": "moderators@runnable.com"
   },
+  // settings for container creation
   "container": {
+    // location of dockworker folder.
+    // used to mount dockworker volume inside contaienr
     "binds": ["/home/ubuntu/dockworker:/dockworker:ro"],
+    // folder in contaienr to bind to
     "bindFolder": "/dockworker",
+    // ports to expose to host
     "portSpecs": [
       "80",
       "15000"
     ],
+    // ports to bind
     "portBindings": {
       "80/tcp": [{}],
       "15000/tcp": [{}]
     },
+    // command to run inside container
     "cmd": ["/dockworker/bin/node", "/dockworker"]
   },
+  // frontdoor server settings
   "frontdoor": {
     "protocol": "http:",
     "hostname": "10.0.1.153",

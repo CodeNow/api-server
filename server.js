@@ -3,7 +3,6 @@ var cluster = require('cluster');
 var path = require('path');
 var rollbar = require('rollbar');
 var numCPUs = require('os').cpus().length;
-var nodetime = require('nodetime');
 var pluck = require('map-utils').pluck;
 
 if (configs.newrelic) {
@@ -51,9 +50,6 @@ var attachLogs = function(clusters) {
 };
 
 var initExternalServices = function() {
-  if (configs.nodetime) {
-    nodetime.profile(configs.nodetime);
-  }
   if (configs.rollbar) {
     rollbar.init(configs.rollbar, {
       environment: process.env.NODE_ENV || "development",
@@ -80,9 +76,6 @@ var memoryLeakPatch = function() {
 
 var masterHandleException = function(err) {
   process.on('uncaughtException', function(err) {
-    if (configs.nodetime) {
-      nodetime.destroy();
-    }
     if (configs.rollbar) {
       rollbar.shutdown();
     }
