@@ -46,16 +46,13 @@
   "containerTimeout": "5 minutes",
   // domain app runs on
   "domain": "runnable.com",
+  // keys for mailchimp
   "mailchimp": {
     "key":  "5fb2e67f84c1be89cf4ddf2252fc3de3-us5",
     "lists": {
       "publishers": "b7a679ddc3",
       "contact": "43330e29a9"
     }
-  },
-  "strongloop": {
-    "key": "1b996aa8f5b3b0a56103437dc60b20a9",
-    "appName": "api-production"
   },
   "SES": {
     "sendMail": true,

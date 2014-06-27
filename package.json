@@ -40,7 +40,6 @@
     "request": "~2.21.0",
     "rimraf": "~2.1.4",
     "rollbar": "~0.3.8",
-    "strong-agent": "*",
     "tar": "gyllstromk/node-tar",
     "underscore.inflections": "~0.2.1",
     "callback-count": "~0.1.0",
