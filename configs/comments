@@ -1,24 +1,37 @@
 {
+  //adsf
   "tokenExpires": "1 year",
   "passwordSalt" : "$up3r,$3<r3t",
-  "mongo": "mongodb://10.0.1.34:27017/runnable2",
+  "mongo": "mongodb://10.0.1.47:27017/runnable2",
   "redis": {
-    "ipaddress": "10.0.1.125",
+    "ipaddress": "10.0.1.20",
     "port": "6379"
   },
-  "workerRestartTime": 60000,
+  "sharedRedis": {
+    "ipaddress": "10.0.1.20",
+    "port": "6379"
+  },
+  "workerRestartTime": 3600000,
+  "newrelic": {
+    "name": "api-production",
+    "key": "338516e0826451c297d44dc60aeaf0a0ca4bfead"
+  },
   "port": 3000,
-  "ipaddress": "10.0.1.93",
+  "ipaddress": "10.0.1.54",
   "maxPageLimit": 200,
   "defaultPageLimit": 25,
-  "rootDomain": "runnable.pw",
+  "rootDomain": "runnable.com",
   "shortProjectIds": true,
   "socketTimeout": "2 minutes",
   "nodetime": {
-    "accountKey": "ce5e71db1f93bd15b7aff013ad4b0287da1f0fcf",
-    "appName": "runnable.pw"
+    "accountKey": "89c858c5a6332b998a1ada5985e5e4c8f578b602",
+    "appName": "api.runnable.com",
+    "namedTransactions": {
+      "Published Runnables": "/runnables",
+      "Draft Runnables": "/users/me/runnables"
+    }
   },
-  "rollbar": "119509f9ba314df8a9ffbaf7b4812fb6",
+  "rollbar": "f35b40b711d246bda76a23d1cda74d5b",
   "dockerRegistry": "registry.runnable.com",
   "runnable_access_timeout": "5 seconds",
   "logExpress": true,
@@ -31,7 +44,7 @@
   "cleanInterval": "3 hours",
   "cacheRefreshInterval": "60 minutes",
   "containerTimeout": "5 minutes",
-  "domain": "runnable.pw",
+  "domain": "runnable.com",
   "mailchimp": {
     "key":  "5fb2e67f84c1be89cf4ddf2252fc3de3-us5",
     "lists": {
@@ -41,7 +54,7 @@
   },
   "strongloop": {
     "key": "1b996aa8f5b3b0a56103437dc60b20a9",
-    "appName": "api-replica"
+    "appName": "api-production"
   },
   "SES": {
     "sendMail": true,
@@ -51,7 +64,7 @@
     },
     "from": "Feedback <feedback@runnable.com>",
     "replyTo": "Feedback <feedback@runnable.mail.intercom.io>",
-    "to": "support+staging@runnable.com"
+    "moderators": "moderators@runnable.com"
   },
   "container": {
     "binds": ["/home/ubuntu/dockworker:/dockworker:ro"],
@@ -68,7 +81,7 @@
   },
   "frontdoor": {
     "protocol": "http:",
-    "hostname": "10.0.1.121",
+    "hostname": "10.0.1.153",
     "port": 7050
   }
 }

@@ -6,10 +6,6 @@
     "ipaddress": "10.0.1.20",
     "port": "6379"
   },
-  "sharedRedis": {
-    "ipaddress": "10.0.1.20",
-    "port": "6379"
-  },
   "workerRestartTime": 3600000,
   "newrelic": {
     "name": "api-production",
