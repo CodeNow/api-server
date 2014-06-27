@@ -1,27 +1,33 @@
 {
-  //adsf
+  // psetex for redis key
   "tokenExpires": "1 year",
+  // salt used for user password when registering
   "passwordSalt" : "$up3r,$3<r3t",
+  // uri for mongo db server
   "mongo": "mongodb://10.0.1.47:27017/runnable2",
+  // host information for redis server
   "redis": {
     "ipaddress": "10.0.1.20",
     "port": "6379"
   },
-  "sharedRedis": {
-    "ipaddress": "10.0.1.20",
-    "port": "6379"
-  },
+  // interval to restart app (fix mem leak)
   "workerRestartTime": 3600000,
+  // new relic configs
   "newrelic": {
     "name": "api-production",
     "key": "338516e0826451c297d44dc60aeaf0a0ca4bfead"
   },
+  // port this app listens on
   "port": 3000,
+  // ipaddres this app listens on
   "ipaddress": "10.0.1.54",
+  // max limit pages returned from query
   "maxPageLimit": 200,
+  // default limit pages returned from query
   "defaultPageLimit": 25,
+  // root domain app runs on
   "rootDomain": "runnable.com",
-  "shortProjectIds": true,
+  // root domain app runs on
   "socketTimeout": "2 minutes",
   "nodetime": {
     "accountKey": "89c858c5a6332b998a1ada5985e5e4c8f578b602",
