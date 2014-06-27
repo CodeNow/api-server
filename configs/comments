@@ -31,8 +31,8 @@
   "rollbar": "f35b40b711d246bda76a23d1cda74d5b",
   // url of registry server
   "dockerRegistry": "registry.runnable.com",
+  // add logging to express
   "logExpress": true,
-  "logErrorStack": true,
   "throwErrors": false,
   "adminAuth": {
     "email": "tjadmin",

@@ -19,7 +19,6 @@
   "rollbar": "f35b40b711d246bda76a23d1cda74d5b",
   "dockerRegistry": "registry.runnable.com",
   "logExpress": true,
-  "logErrorStack": true,
   "throwErrors": false,
   "adminAuth": {
     "email": "tjadmin",
