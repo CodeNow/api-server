@@ -90,12 +90,11 @@ end
 service 'api-server' do
   provider Chef::Provider::Service::Upstart
   supports :status => true, :restart => true, :reload => false
-  notifies :enable, 'service[cleanup]', :immediately
-  action :enable
+  action :nothing
 end
 
 service 'cleanup' do
   provider Chef::Provider::Service::Upstart
   supports :status => true, :restart => true, :reload => false
-  action :enable
+  action :nothing
 end
