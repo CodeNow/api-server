@@ -2,6 +2,9 @@ machine:
   environment:
     NODE_ENV: testing
 dependencies:
+  cache_directories:
+    - "vendor/bundle"
+    - "node_modules"
   override:
     - nvm install 0.10.24
     - nvm alias default 0.10.24
