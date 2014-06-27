@@ -25,22 +25,26 @@
   "maxPageLimit": 200,
   // default limit pages returned from query
   "defaultPageLimit": 25,
-  // root domain app runs on
-  "rootDomain": "runnable.com",
   // auth key for rollbar
   "rollbar": "f35b40b711d246bda76a23d1cda74d5b",
   // url of registry server
   "dockerRegistry": "registry.runnable.com",
   // add logging to express
   "logExpress": true,
+  // throw errors
   "throwErrors": false,
+  // auth for cleanup script
   "adminAuth": {
     "email": "tjadmin",
     "password": "mehta"
   },
+  // cleanup script run interval
   "cleanInterval": "3 hours",
+  // time to gather image cache
   "cacheRefreshInterval": "60 minutes",
+  // time before non-saved container is considered garbage
   "containerTimeout": "5 minutes",
+  // domain app runs on
   "domain": "runnable.com",
   "mailchimp": {
     "key":  "5fb2e67f84c1be89cf4ddf2252fc3de3-us5",

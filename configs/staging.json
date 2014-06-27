@@ -11,7 +11,6 @@
   "ipaddress": "10.0.1.93",
   "maxPageLimit": 200,
   "defaultPageLimit": 25,
-  "rootDomain": "runnable.pw",
   "rollbar": "119509f9ba314df8a9ffbaf7b4812fb6",
   "dockerRegistry": "registry.runnable.com",
   "logExpress": true,
