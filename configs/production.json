@@ -18,7 +18,6 @@
   "rootDomain": "runnable.com",
   "rollbar": "f35b40b711d246bda76a23d1cda74d5b",
   "dockerRegistry": "registry.runnable.com",
-  "runnable_access_timeout": "5 seconds",
   "logExpress": true,
   "logErrorStack": true,
   "throwErrors": false,

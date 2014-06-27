@@ -27,9 +27,10 @@
   "defaultPageLimit": 25,
   // root domain app runs on
   "rootDomain": "runnable.com",
+  // auth key for rollbar
   "rollbar": "f35b40b711d246bda76a23d1cda74d5b",
+  // url of registry server
   "dockerRegistry": "registry.runnable.com",
-  "runnable_access_timeout": "5 seconds",
   "logExpress": true,
   "logErrorStack": true,
   "throwErrors": false,
