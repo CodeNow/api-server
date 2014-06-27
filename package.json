@@ -36,7 +36,6 @@
     "multiparty": "~3.2.2",
     "newrelic": "~1.4.0",
     "nodemailer": "~0.6.1",
-    "nodetime": "0.8.12",
     "query-string": "~0.3.0",
     "request": "~2.21.0",
     "rimraf": "~2.1.4",

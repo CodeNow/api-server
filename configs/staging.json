@@ -12,10 +12,6 @@
   "maxPageLimit": 200,
   "defaultPageLimit": 25,
   "rootDomain": "runnable.pw",
-  "nodetime": {
-    "accountKey": "ce5e71db1f93bd15b7aff013ad4b0287da1f0fcf",
-    "appName": "runnable.pw"
-  },
   "rollbar": "119509f9ba314df8a9ffbaf7b4812fb6",
   "dockerRegistry": "registry.runnable.com",
   "runnable_access_timeout": "5 seconds",

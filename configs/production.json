@@ -16,14 +16,6 @@
   "maxPageLimit": 200,
   "defaultPageLimit": 25,
   "rootDomain": "runnable.com",
-  "nodetime": {
-    "accountKey": "89c858c5a6332b998a1ada5985e5e4c8f578b602",
-    "appName": "api.runnable.com",
-    "namedTransactions": {
-      "Published Runnables": "/runnables",
-      "Draft Runnables": "/users/me/runnables"
-    }
-  },
   "rollbar": "f35b40b711d246bda76a23d1cda74d5b",
   "dockerRegistry": "registry.runnable.com",
   "runnable_access_timeout": "5 seconds",
