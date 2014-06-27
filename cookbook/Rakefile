@@ -30,7 +30,7 @@ end
 
 desc 'Run kitchen test'
 task :kitchen_test do
-  sh 'bundle exec kitchen test'
+  sh 'bundle exec kitchen test --destroy=always --concurrency'
 end
 
 desc 'Run tests with test-kitchen'
