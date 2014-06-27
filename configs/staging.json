@@ -12,7 +12,6 @@
   "maxPageLimit": 200,
   "defaultPageLimit": 25,
   "rootDomain": "runnable.pw",
-  "socketTimeout": "2 minutes",
   "nodetime": {
     "accountKey": "ce5e71db1f93bd15b7aff013ad4b0287da1f0fcf",
     "appName": "runnable.pw"

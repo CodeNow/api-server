@@ -27,8 +27,6 @@
   "defaultPageLimit": 25,
   // root domain app runs on
   "rootDomain": "runnable.com",
-  // root domain app runs on
-  "socketTimeout": "2 minutes",
   "nodetime": {
     "accountKey": "89c858c5a6332b998a1ada5985e5e4c8f578b602",
     "appName": "api.runnable.com",
