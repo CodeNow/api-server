@@ -54,6 +54,7 @@
       "contact": "43330e29a9"
     }
   },
+  // settings for mailchip to send mail
   "SES": {
     "sendMail": true,
     "auth": {
@@ -64,19 +65,27 @@
     "replyTo": "Feedback <feedback@runnable.mail.intercom.io>",
     "moderators": "moderators@runnable.com"
   },
+  // settings for container creation
   "container": {
+    // location of dockworker folder.
+    // used to mount dockworker volume inside contaienr
     "binds": ["/home/ubuntu/dockworker:/dockworker:ro"],
+    // folder in contaienr to bind to
     "bindFolder": "/dockworker",
+    // ports to expose to host
     "portSpecs": [
       "80",
       "15000"
     ],
+    // ports to bind
     "portBindings": {
       "80/tcp": [{}],
       "15000/tcp": [{}]
     },
+    // command to run inside container
     "cmd": ["/dockworker/bin/node", "/dockworker"]
   },
+  // frontdoor server settings
   "frontdoor": {
     "protocol": "http:",
     "hostname": "10.0.1.153",
