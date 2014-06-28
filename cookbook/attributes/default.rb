@@ -8,8 +8,9 @@ when 'production'
   'release_branch'
 end
 
-mongo_server = search(:node, "chef_environment:#{node.chef_environment} AND recipes:runnable_api-server\:\:mongodb").first
-redis_server = search(:node, "chef_environment:#{node.chef_environment} AND recipes:runnable\:\:redis_server").first
+mongo_server      = search(:node, "chef_environment:#{node.chef_environment} AND recipes:runnable\:\:mongo_server").first
+redis_server      = search(:node, "chef_environment:#{node.chef_environment} AND recipes:runnable\:\:redis_server").first
+frontdoor_server  = search(:node, "chef_environment:#{node.chef_environment} AND recipes:runnable\:\:frontdoor").first
 
 case chef_environment
 when 'integration'
@@ -19,7 +20,9 @@ when 'integration'
   default['runnable_api-server']['config']['cleanInterval'] => '2 minutes'
   default['runnable_api-server']['config']['cacheRefreshInterval'] => '2 minutes'
   default['runnable_api-server']['config']['domain'] => 'cloudcosmos.com'
-
+  default['runnable_api-server']['config']['SES'] => {
+    'sendMail' => false
+  }
 when 'staging'
   default['runnable_api-server']['config']['workerRestartTime'] => 60000
   default['runnable_api-server']['config']['rollbar'] => '119509f9ba314df8a9ffbaf7b4812fb6'
@@ -27,6 +30,16 @@ when 'staging'
   default['runnable_api-server']['config']['cleanInterval'] => '3 hours'
   default['runnable_api-server']['config']['cacheRefreshInterval'] => '60 minutes'
   default['runnable_api-server']['config']['domain'] => 'runnable.pw'
+  default['runnable_api-server']['config']['SES]' => {
+    'sendMail': true,
+    'auth' => {
+      'username' => 'AKIAIEPR357KCGSMAQAQ',
+      'pass' => 'Ag/xsyJ047+LTH3RNfmPG7JXR9b0yaeto2TyzuonjtjH'
+    },
+    'from' => 'Feedback <feedback@runnable.com>',
+    'replyTo' => 'Feedback <feedback@runnable.mail.intercom.io>',
+    'to' => 'support+staging@runnable.com'
+  }
 
 when 'production'
   default['runnable_api-server']['config']['workerRestartTime'] => 3600000
@@ -35,7 +48,16 @@ when 'production'
   default['runnable_api-server']['config']['cleanInterval'] => '3 hours'
   default['runnable_api-server']['config']['cacheRefreshInterval'] => '60 minutes'
   default['runnable_api-server']['config']['domain'] => 'runnable.com'
-
+  default['runnable_api-server']['config']['SES]' => {
+    'sendMail': true,
+    'auth' => {
+      'username' => 'AKIAIEPR357KCGSMAQAQ',
+      'pass' => 'Ag/xsyJ047+LTH3RNfmPG7JXR9b0yaeto2TyzuonjtjH'
+    },
+    'from' => 'Feedback <feedback@runnable.com>',
+    'replyTo' => 'Feedback <feedback@runnable.mail.intercom.io>',
+    'moderators' => 'moderators@runnable.com'
+  }
 
   default['runnable_api-server']['config']['newrelic'] => {
     'name' => 'api-production',
@@ -72,17 +94,6 @@ default['runnable_api-server']['config'] = {
       'contact' => '43330e29a9'
     }
   },
-  #Continue refactoring here
-  'SES' => {
-    'sendMail' => true,
-    'auth' => {
-      'username' => 'AKIAIEPR357KCGSMAQAQ',
-      'pass' => 'Ag/xsyJ047+LTH3RNfmPG7JXR9b0yaeto2TyzuonjtjH'
-    },
-    'from' => 'Feedback <feedback@runnable.com>',
-    'replyTo' => 'Feedback <feedback@runnable.mail.intercom.io>',
-    'moderators' => 'moderators@runnable.com'
-  },
   'container' => {
     'binds' => ['/home/ubuntu/dockworker:/dockworker:ro'],
     'bindFolder' => '/dockworker',
@@ -98,7 +109,7 @@ default['runnable_api-server']['config'] = {
   },
   'frontdoor' => {
     'protocol' => 'http:',
-    'hostname' => '10.0.1.153',
+    'hostname' => frontdoor_server.ipaddress,
     'port' => 7050
   }
 }
