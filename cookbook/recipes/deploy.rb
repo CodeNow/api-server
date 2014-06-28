@@ -9,46 +9,11 @@
 
 package 'git'
 
-directory '/root/.ssh' do
-  owner 'root'
-  group 'root'
-  mode 0700
-  action :create
-  notifies :create, 'cookbook_file[/root/.ssh/runnable_api-server]', :immediately
-end
-
-cookbook_file '/root/.ssh/runnable_api-server' do
-  source 'runnable_api-server.key'
-  owner 'root'
-  group 'root'
-  mode 0600
-  action :create
-  notifies :deploy, "deploy[#{node['runnable_api-server']['deploy']['deploy_path']}]", :delayed
-  notifies :create, 'cookbook_file[/root/.ssh/runnable_api-server.pub]', :immediately
-end
-
-cookbook_file '/root/.ssh/runnable_api-server.pub' do
-  source 'runnable_api-server.key.pub'
-  owner 'root'
-  group 'root'
-  mode 0600
-  action :create
-  notifies :deploy, "deploy[#{node['runnable_api-server']['deploy']['deploy_path']}]", :delayed
-end
-
-cookbook_file '/tmp/git_sshwrapper.sh' do
-  source 'git_sshwrapper.sh'
-  owner 'root'
-  group 'root'
-  mode 0755
-  action :create
-end
-
-deploy node['runnable_api-server']['deploy']['deploy_path'] do
+deploy node['runnable_api-server']['deploy_path'] do
   repo 'git@github.com:CodeNow/api-server.git'
   git_ssh_wrapper '/tmp/git_sshwrapper.sh'
-  branch node['runnable_api-server']['deploy']['deploy_branch']
-  deploy_to node['runnable_api-server']['deploy']['deploy_path']
+  branch node['runnable_api-server']['deploy_branch']
+  deploy_to node['runnable_api-server']['deploy_path']
   migrate false
   create_dirs_before_symlink []
   purge_before_symlink []
@@ -61,7 +26,7 @@ deploy node['runnable_api-server']['deploy']['deploy_path'] do
 end
 
 execute 'npm install' do
-  cwd "#{node['runnable_api-server']['deploy']['deploy_path']}/current"
+  cwd "#{node['runnable_api-server']['deploy_path']}/current"
   action :nothing
   notifies :restart, 'service[api-server]', :delayed
   notifies :restart, 'service[cleanup]', :delayed
@@ -72,7 +37,7 @@ end
 template '/etc/init/api-server.conf' do
   variables({
     :node_env => node.chef_environment,
-    :deploy_path => "#{node['runnable_api-server']['deploy']['deploy_path']}/current"
+    :deploy_path => "#{node['runnable_api-server']['deploy_path']}/current"
   })
   action :create
   notifies :restart, 'service[api-server]', :immediately
@@ -81,7 +46,7 @@ end
 template '/etc/init/cleanup.conf' do
   variables({
     :node_env => node.chef_environment,
-    :deploy_path => "#{node['runnable_api-server']['deploy']['deploy_path']}/current"
+    :deploy_path => "#{node['runnable_api-server']['deploy_path']}/current"
   })
   action :create
   notifies :restart, 'service[cleanup]', :immediately

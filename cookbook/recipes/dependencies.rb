@@ -1,6 +1,6 @@
 #
 # Cookbook Name:: runnable_api-server
-# Recipe:: nodejs
+# Recipe:: dependencies
 #
 # Copyright 2014, Runnable.com
 #
