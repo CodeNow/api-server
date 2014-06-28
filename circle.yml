@@ -21,3 +21,5 @@ test:
     - ruby -e 'if ENV["CIRCLE_BRANCH"] =~ /(.*chef.*)|(master)/ then exec "bundle exec rake test" end': 
         pwd: cookbook
         timeout: 99999
+  post:
+    - cp cookbook/.kitchen/logs/* $CIRCLE_ARTIFACTS
