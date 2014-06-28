@@ -20,7 +20,7 @@ emailer.sendDelistEmail = function() { // Spy on this function
 require('./lib/fixtures/dockworker');
 var configs = require('../lib/configs');
 var specData = helpers.specData;
-var redis = require('redis').createClient(configs.sharedRedis.port, configs.sharedRedis.ipaddress);
+var redis = require('redis').createClient(configs.redis.port, configs.redis.ipaddress);
 var createCount = require('callback-count');
 
 var docker = require('./lib/fixtures/docker');

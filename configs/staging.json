@@ -6,27 +6,14 @@
     "ipaddress": "10.0.1.125",
     "port": "6379"
   },
-  "sharedRedis": {
-    "ipaddress": "10.0.1.125",
-    "port": "6379"
-  },
   "workerRestartTime": 60000,
   "port": 3000,
   "ipaddress": "10.0.1.93",
   "maxPageLimit": 200,
   "defaultPageLimit": 25,
-  "rootDomain": "runnable.pw",
-  "shortProjectIds": true,
-  "socketTimeout": "2 minutes",
-  "nodetime": {
-    "accountKey": "ce5e71db1f93bd15b7aff013ad4b0287da1f0fcf",
-    "appName": "runnable.pw"
-  },
   "rollbar": "119509f9ba314df8a9ffbaf7b4812fb6",
   "dockerRegistry": "registry.runnable.com",
-  "runnable_access_timeout": "5 seconds",
   "logExpress": true,
-  "logErrorStack": true,
   "throwErrors": false,
   "adminAuth": {
     "email": "tjadmin",
@@ -42,10 +29,6 @@
       "publishers": "b7a679ddc3",
       "contact": "43330e29a9"
     }
-  },
-  "strongloop": {
-    "key": "1b996aa8f5b3b0a56103437dc60b20a9",
-    "appName": "api-replica"
   },
   "SES": {
     "sendMail": true,
