@@ -42,5 +42,5 @@ default['runnable_api-server']['config'] = {
     'protocol' => 'http:',
     'port' => 7050
   },
-  'SES' = {}
+  'SES' => {}
 }
