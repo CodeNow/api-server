@@ -4,7 +4,6 @@ default['runnable_api-server']['deploy_path']		= '/opt/api-server'
 default['runnable_api-server']['config'] = {
   'tokenExpires' => '1 year',
   'passwordSalt' => '$up3r,$3<r3t',
-  'mongo' => "mongodb://#{mongo_server.ipaddress}:27017/runnable2",
   'redis' => {
     'port' => '6379'
   },
