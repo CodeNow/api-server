@@ -17,6 +17,10 @@ describe_recipe 'runnable_api-server::default' do
     file('/root/.ssh/runnable_api-server.pub').must_exist
   end
 
+  it 'generates json configuration' do
+    assert_includes_content("#{node['runnable_api-server']['deploy_path']}/current/configs/#{node.chef_environment}.json", node['runnable_api-server']['config'].to_json)
+  end
+
   it 'creates api-server upstart service' do
     file('/etc/init/api-server.conf').must_exist
   end
