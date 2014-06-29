@@ -21,7 +21,7 @@ cookbook_file '/root/.ssh/runnable_api-server' do
   group 'root'
   mode 0600
   action :create
-  notifies :deploy, "deploy[#{node['runnable_api-server']['deploy']['deploy_path']}]", :delayed
+  notifies :deploy, "deploy[#{node['runnable_api-server']['deploy_path']}]", :delayed
   notifies :create, 'cookbook_file[/root/.ssh/runnable_api-server.pub]', :immediately
 end
 
@@ -31,7 +31,7 @@ cookbook_file '/root/.ssh/runnable_api-server.pub' do
   group 'root'
   mode 0600
   action :create
-  notifies :deploy, "deploy[#{node['runnable_api-server']['deploy']['deploy_path']}]", :delayed
+  notifies :deploy, "deploy[#{node['runnable_api-server']['deploy_path']}]", :delayed
 end
 
 cookbook_file '/tmp/git_sshwrapper.sh' do
