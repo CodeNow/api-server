@@ -18,7 +18,7 @@ deploy node['runnable_api-server']['deploy_path'] do
   symlink_before_migrate({})
   symlinks({})
   action :deploy
-  notifies :create 'file[config]', :immediately
+  notifies :create, 'file[config]', :immediately
   notifies :create, 'template[/etc/init/api-server.conf]', :immediately
   notifies :create, 'template[/etc/init/cleanup.conf]', :immediately
 end
