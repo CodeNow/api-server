@@ -7,8 +7,6 @@
 # All rights reserved - Do Not Redistribute
 #
 
-package 'git'
-
 deploy node['runnable_api-server']['deploy_path'] do
   repo 'git@github.com:CodeNow/api-server.git'
   git_ssh_wrapper '/tmp/git_sshwrapper.sh'
@@ -20,9 +18,16 @@ deploy node['runnable_api-server']['deploy_path'] do
   symlink_before_migrate({})
   symlinks({})
   action :deploy
-  notifies :run, 'execute[npm install]', :immediately
+  notifies :create 'file[config]', :immediately
   notifies :create, 'template[/etc/init/api-server.conf]', :immediately
   notifies :create, 'template[/etc/init/cleanup.conf]', :immediately
+end
+
+file 'config' do
+  path "#{node['runnable_api-server']['deploy_path']}/current/configs/#{node.chef_environment}.json"
+  content JSON.pretty_generate node['runnable_api-server']['config']
+  action :nothing
+  notifies :run, 'execute[npm install]', :immediately
 end
 
 execute 'npm install' do
@@ -30,8 +35,6 @@ execute 'npm install' do
   action :nothing
   notifies :restart, 'service[api-server]', :delayed
   notifies :restart, 'service[cleanup]', :delayed
-  notifies :create, 'template[/etc/init/api-server.conf]', :immediately
-  notifies :create, 'template[/etc/init/cleanup.conf]', :immediately
 end
 
 template '/etc/init/api-server.conf' do
