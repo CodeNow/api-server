@@ -14,7 +14,6 @@ depends 'runnable_redis'
 depends 'apt'
 
 recipe 'runnable_api-server::default', 'Performs installaion/configuration of api-server and all prerequisites'
-recipe 'runnable_api-server::mongodb', 'Performs installaion/configuration of mongodb'
 
 attribute 'runnable_api-server/deploy_path',
   :display_name => 'deploy path',
