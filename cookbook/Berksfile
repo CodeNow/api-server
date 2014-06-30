@@ -2,6 +2,7 @@ source 'https://api.berkshelf.com'
 
 metadata
 
+cookbook 'runnable_mongodb', git: 'git@github.com:CodeNow/runnable_mongodb-cookbook.git'
 cookbook 'runnable_nodejs', git: 'git@github.com:CodeNow/runnable_nodejs-cookbook.git'
 cookbook 'runnable_redis', git: 'git@github.com:CodeNow/runnable_redis-cookbook.git'
 
