@@ -18,7 +18,9 @@ describe_recipe 'runnable_api-server::default' do
   end
 
   it 'generates json configuration' do
-    assert_includes_content("#{node['runnable_api-server']['deploy_path']}/current/configs/#{node.chef_environment}.json", node['runnable_api-server']['config'].to_json)
+    node['runnable_api-server']['config'].each do |k,v|
+      file("#{node['runnable_api-server']['deploy_path']}/current/configs/#{node.chef_environment}.json").must_include k
+    end
   end
 
   it 'creates api-server upstart service' do
