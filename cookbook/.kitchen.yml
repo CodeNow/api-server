@@ -26,6 +26,7 @@ suites:
         environment: integration
 
     run_list:
+      - recipe[apt]
       - recipe[build-essential]
       - recipe[runnable_mongodb]
       - recipe[runnable_redis]
