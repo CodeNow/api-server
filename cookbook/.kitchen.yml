@@ -6,6 +6,7 @@ driver:
    aws_ssh_key_id: <%= ENV['aws_ssh_key_id'] %>
    region: 'us-west-1'
    availability_zone: 'us-west-1c'
+   username: ubuntu
 
 provisioner:
   name: chef_solo
@@ -15,7 +16,6 @@ platforms:
   - name: ubuntu-14.04
     driver:
       image_id: 'ami-a26265e7'
-      username: ubuntu
     driver_config:
       require_chef_omnibus: latest
 
