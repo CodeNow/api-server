@@ -33,3 +33,5 @@ suites:
       - recipe[runnable_api-server]
       - recipe[minitest-handler]
     attributes:
+      runnable_redis:
+        bind_address: 127.0.0.1
