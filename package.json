@@ -9,7 +9,7 @@
   "private": true,
   "dependencies": {
     "101": "~0.1.0",
-    "express": "~3.2.6",
+    "express": "^3.5.1",
     "redis": "~0.8.3",
     "eson": "~0.4.1",
     "node-uuid": "~1.4.0",
