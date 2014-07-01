@@ -26,8 +26,9 @@ suites:
         environment: integration
 
     run_list:
+      - recipe[build-essential]
       - recipe[runnable_mongodb]
       - recipe[runnable_redis]
-      - recipe[runnable_api-server::default]
+      - recipe[runnable_api-server]
       - recipe[minitest-handler]
     attributes:
