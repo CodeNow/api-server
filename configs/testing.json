@@ -53,6 +53,10 @@
     },
     "cmd": ["/dockworker/bin/node", "/dockworker"]
   },
+  "adminAuth": {
+    "email": "fake",
+    "password": "fake"
+  },
   "frontdoor": {
     "protocol": "http:",
     "hostname": "127.0.0.1",
