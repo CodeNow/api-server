@@ -33,5 +33,7 @@ suites:
       - recipe[runnable_api-server]
       - recipe[minitest-handler]
     attributes:
+      runnable_api-server:
+        mongo: 'mongodb://127.0.0.1:27017/runnable2'
       runnable_redis:
         bind_address: 127.0.0.1
