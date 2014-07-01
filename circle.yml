@@ -3,7 +3,7 @@ machine:
     NODE_ENV: testing
 dependencies:
   cache_directories:
-    - "vendor/bundle"
+    - "cookbook/vendor/bundle"
     - "node_modules"
   override:
     - nvm install 0.10.24
