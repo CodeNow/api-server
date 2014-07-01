@@ -4,6 +4,12 @@ default['runnable_api-server']['deploy_path']		= '/opt/api-server'
 default['runnable_api-server']['config'] = {
   'tokenExpires' => '1 year',
   'passwordSalt' => '$up3r,$3<r3t',
+  'workerRestartTime' => 3600000,
+  'rollbar' => '',
+  'domain' => '',
+  'throwErrors' => true,
+  'cleanInterval' => '2 minutes',
+  'cacheRefreshInterval' => '2 minutes',
   'redis' => {
     'port' => '6379'
   },
@@ -42,5 +48,7 @@ default['runnable_api-server']['config'] = {
     'protocol' => 'http:',
     'port' => 7050
   },
-  'SES' => {}
+  'SES' => {
+    'sendMail' => false
+  }
 }
