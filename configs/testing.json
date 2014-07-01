@@ -61,5 +61,10 @@
     "protocol": "http:",
     "hostname": "127.0.0.1",
     "port": 7050
-  }
+  },
+  "newrelic": {
+    "name": "fake",
+    "key": "fake"
+  },
+  "rollbar": "fake"
 }
