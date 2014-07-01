@@ -2,6 +2,7 @@ default['runnable_api-server']['deploy_branch'] = 'master'
 default['runnable_api-server']['deploy_path']		= '/opt/api-server'
 
 default['runnable_api-server']['config'] = {
+  'mongo' => 'mongodb://127.0.0.1:27017/runnable2',
   'tokenExpires' => '1 year',
   'passwordSalt' => '$up3r,$3<r3t',
   'workerRestartTime' => 3600000,
