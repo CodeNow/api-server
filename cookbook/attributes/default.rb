@@ -12,7 +12,7 @@ default['runnable_api-server']['config'] = {
   'cleanInterval' => '2 minutes',
   'cacheRefreshInterval' => '2 minutes',
   'redis' => {
-    'ipaddress' => '127.0.0.1'
+    'ipaddress' => '127.0.0.1',
     'port' => '6379'
   },
   'port' => 3000,
@@ -47,6 +47,7 @@ default['runnable_api-server']['config'] = {
     'cmd' => ['/dockworker/bin/node', '/dockworker']
   },
   'frontdoor' => {
+    'hostname' => '127.0.0.1'
     'protocol' => 'http:',
     'port' => 7050
   },
