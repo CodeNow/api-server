@@ -47,11 +47,12 @@ default['runnable_api-server']['config'] = {
     'cmd' => ['/dockworker/bin/node', '/dockworker']
   },
   'frontdoor' => {
-    'hostname' => '127.0.0.1'
+    'hostname' => '127.0.0.1',
     'protocol' => 'http:',
     'port' => 7050
   },
   'SES' => {
     'sendMail' => false
-  }
+  },
+  'newrelic' => {}
 }
