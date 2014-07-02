@@ -9,7 +9,6 @@ version          '0.1.7'
 supports 'ubuntu'
 
 depends 'runnable_nodejs'
-depends 'runnable_redis'
 
 depends 'apt'
 
