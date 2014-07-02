@@ -10,8 +10,3 @@
 include_recipe 'runnable_api-server::dependencies'
 include_recipe 'runnable_api-server::deploy_ssh'
 include_recipe 'runnable_api-server::deploy'
-
-case node.chef_environment
-when 'production' 
-  include_recipe 'runnable_api-server::newrelic'
-end 
