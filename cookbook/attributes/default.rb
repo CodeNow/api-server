@@ -12,6 +12,7 @@ default['runnable_api-server']['config'] = {
   'cleanInterval' => '2 minutes',
   'cacheRefreshInterval' => '2 minutes',
   'redis' => {
+    'ipaddress' => '127.0.0.1'
     'port' => '6379'
   },
   'port' => 3000,
