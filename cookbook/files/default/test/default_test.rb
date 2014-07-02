@@ -40,7 +40,7 @@ describe_recipe 'runnable_api-server::default' do
   end
 
   it 'listens on port 3000' do
-    assert shell_out('lsof -n -i :3000').exitstatus == 0
+    shell_out('lsof -n -i :3000').exitstatus.must_equal 0
   end
 
 end
