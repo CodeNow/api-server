@@ -2,6 +2,10 @@
   "tokenExpires": "1 year",
   "passwordSalt" : "$up3r,$3<r3t",
   "mongo": "mongodb://127.0.0.1:27017/runnable2",
+  "adminAuth": {
+    "email": "tjadmin",
+    "password": "mehta"
+  },
   "redis": {
     "ipaddress": "127.0.0.1",
     "port": "6379"
@@ -11,20 +15,15 @@
     "port": "6379"
   },
   "workerRestartTime": 3600000,
+  "ipaddress": "127.0.0.1",
+  "cleanInterval": "3 hours",
   "port": 3030,
   "maxPageLimit": 200,
   "defaultPageLimit": 25,
   "rootDomain": "runnable2.net",
   "shortProjectIds": true,
   "socketTimeout": "2 minutes",
-  "rollbar": {
-    "key": "119509f9ba314df8a9ffbaf7b4812fb6",
-    "options":  {
-      "root": "{ROOT_DIR}",
-      "branch": "master",
-      "environment": "development"
-    }
-  },
+  "rollbar": "f35b40b711d246bda76a23d1cda74d5b",
   "dockerRegistry": "registry.runnable.com",
   "runnable_access_timeout": "5 seconds",
   "logExpress": true,
