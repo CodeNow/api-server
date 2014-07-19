@@ -1,19 +1,18 @@
 #
 # api_main Dockerfile
 #
-#
-# Pull base image.
-FROM sandipsingh/api_base
-# Download API-Server Repo
-RUN eval $(ssh-agent) > /dev/null && ssh-add /.ssh/id_rsa && git clone git@github.com:CodeNow/api-server.git 
 
-WORKDIR api-server 
-RUN npm install 
-#RUN make 
-RUN npm build 
+# Pull base image.
+FROM registry.runnable.com/runnable/api_base:latest
+
+# Download API-Server Repo
+RUN git clone git@github.com:CodeNow/api-server.git
+
+WORKDIR api-server
+RUN npm install
 
 # Expose port to Host
 EXPOSE 3000
-# Define default command.
-CMD ["NODE_ENV=staging pm2 start server.js -n API-Server", "pm2 logs"]
 
+# Define default command.
+CMD ["/usr/local/bin/npm", "start"]
