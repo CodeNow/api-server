@@ -12,7 +12,6 @@
     "port": "6379"
   },
   "workerRestartTime": 3600000,
-  "ipaddress": "10.0.1.86",
   "maxPageLimit": 200,
   "defaultPageLimit": 25,
   "rootDomain": "cloudcosmos.com",
