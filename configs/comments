@@ -19,8 +19,6 @@
   },
   // port this app listens on
   "port": 3000,
-  // ipaddres this app listens on
-  "ipaddress": "10.0.1.54",
   // max limit pages returned from query
   "maxPageLimit": 200,
   // default limit pages returned from query
