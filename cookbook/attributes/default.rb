@@ -34,7 +34,7 @@ default['runnable_api-server']['config'] = {
     }
   },
   'container' => {
-    'binds' => ['/home/ubuntu/dockworker:/dockworker:ro'],
+    'binds' => ['/opt/dockworker/current:/dockworker:ro'],
     'bindFolder' => '/dockworker',
     'portSpecs' => [
       '80',
@@ -44,7 +44,7 @@ default['runnable_api-server']['config'] = {
       '80/tcp' => [{}],
       '15000/tcp' => [{}]
     },
-    'cmd' => ['/dockworker/bin/node', '/dockworker']
+    'cmd' => ['/opt/dockworker/current/bin/node', '/dockworker']
   },
   'frontdoor' => {
     'hostname' => '127.0.0.1',
