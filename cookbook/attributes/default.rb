@@ -34,7 +34,7 @@ default['runnable_api-server']['config'] = {
     }
   },
   'container' => {
-    'binds' => ['/opt/dockworker/current:/dockworker:ro'],
+    'binds' => ['/dockworker:/dockworker:ro'],
     'bindFolder' => '/dockworker',
     'portSpecs' => [
       '80',
