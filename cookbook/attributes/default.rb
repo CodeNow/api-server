@@ -44,7 +44,7 @@ default['runnable_api-server']['config'] = {
       '80/tcp' => [{}],
       '15000/tcp' => [{}]
     },
-    'cmd' => ['/opt/dockworker/current/bin/node', '/dockworker']
+    'cmd' => ['/dockworker/bin/node', '/dockworker']
   },
   'frontdoor' => {
     'hostname' => '127.0.0.1',
