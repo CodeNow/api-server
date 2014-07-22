@@ -121,7 +121,7 @@ code coverage
 
 * you can build a code coverage report into ./coverage/index.html
 * first build and install this specific version of jscoverage:
-  * https://github.com/visionmedia/node-jscoverage.git
+  - https://github.com/visionmedia/node-jscoverage.git
 * then run make clean, make build, make coverage
 
 api spec
