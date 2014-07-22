@@ -52,6 +52,7 @@ deploy node['runnable_api-server']['deploy_path'] do
         supports :status => true, :restart => true, :reload => false
         action [:start, :enable]
       end
+    end
   end
   create_dirs_before_symlink []
   purge_before_symlink []
