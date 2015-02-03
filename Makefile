@@ -32,3 +32,5 @@ clean:
 .PHONY: coverage
 .PHONY: clean
 .PHONY: start
+.PHONY: start2
+
