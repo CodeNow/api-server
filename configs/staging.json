@@ -51,6 +51,7 @@
       "80/tcp": [{}],
       "15000/tcp": [{}]
     },
+    "exposedPorts" : { "80/tcp": {},  "15000/tcp": {} },
     "cmd": ["/dockworker/bin/node", "/dockworker"]
   },
   "frontdoor": {
