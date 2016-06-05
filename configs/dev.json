@@ -1,0 +1,87 @@
+{
+  "tokenExpires": "1 year",
+  "passwordSalt" : "SDHGH_SD2329",
+  "mongo": "mongodb://10.0.2.15:27017/runnable",
+  "redis": {
+    "ipaddress": "10.0.2.15",
+    "port": 6379
+  },
+  "workerRestartTime": 60000,
+  "port": 3000,
+  "maxPageLimit": 200,
+  "defaultPageLimit": 25,
+  "rollbar": "119509f9ba314df8a9ffbaf7b4812fb6",
+  "dockerRegistry": "registry.run.dev:5000",
+  "logExpress": true,
+  "throwErrors": false,
+  "adminAuth": {
+    "email": "tjadmin",
+    "password": "mehta"
+  },
+  "cleanInterval": "3 hours",
+  "cacheRefreshInterval": "60 minutes",
+  "containerTimeout": "5 minutes",
+  "domain": "code.runnable.run.dev",
+  "userContentDomain": "runnablecodesnippets.run.dev",
+  "mailchimp": {
+    "key":  "asdasdasdsdadsda-us5",
+    "lists": {
+      "publishers": "",
+      "contact": "43330e29a9"
+    }
+  },
+  "SES": {
+    "sendMail": true,
+    "auth": {
+      "username": "AKIAIEPR357KCGSMAQAQ",
+      "pass": "Ag/xsyJ047+LTH3RNfmPG7JXR9b0yaeto2TyzuonjtjH"
+    },
+    "from": "Feedback <feedback@runnable.com>",
+    "replyTo": "Feedback <feedback@runnable.mail.intercom.io>",
+    "to": "shivam.bajpai@stackexpress.com",
+    "moderators": "shivam.bajpai@stackexpress.com"
+  },
+  "container": {
+    "binds": ["/home/ubuntu/dockworker:/dockworker:ro"],
+    "bindFolder": "/dockworker",
+    "portSpecs": [
+      "80",
+      "15000"
+    ],
+    "portBindings": {
+      "80/tcp": [{}],
+      "15000/tcp": [{}]
+    },
+    "exposedPorts" : { "80/tcp": {},  "15000/tcp": {} },
+    "blkioDeviceReadBps": [{
+        "Path": "/dev/sda",
+        "Rate": 524288
+    }],
+    "blkioDeviceWriteBps": [{
+        "Path": "/dev/sda",
+        "Rate": 524288
+    }],
+    "blkioDeviceReadIOps": [{
+        "Path": "/dev/sda",
+        "Rate": 50
+    }],
+    "blkioDeviceWriteIOps": [{
+        "Path": "/dev/sda",
+        "Rate": 50
+    }],
+    "cpusetCpus": "0,1",
+    "kernelMemory": 8388608,
+    "memoryReservation": 268435456,
+    "memory": 536870912,
+    "memorySwap": 1073741824, 
+    "defaultExpiry" : 1000,
+    "defaultExpiryExtension" : 6000,
+    "defaultSessionMaxTime": 180000,
+    "cmd": ["/dockworker/bin/node", "/dockworker"]
+  },
+  "frontdoor": {
+    "protocol": "http:",
+    "hostname": "192.168.56.101",
+    "port":  7050
+  }
+}
