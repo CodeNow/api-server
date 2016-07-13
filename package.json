@@ -47,9 +47,16 @@
     "request": "~2.21.0",
     "rimraf": "~2.1.4",
     "rollbar": "~0.3.8",
+    "tar": "~2.2.1",
+    "underscore.inflections": "~0.2.1",
+    "callback-count": "~0.1.0",
+    "docker-mock": "0.0.8",
+    "fn-object": "~0.2.2",
     "simple-api-client": "~0.2.3",
-    "tar": "gyllstromk/node-tar",
-    "underscore.inflections": "~0.2.1"
+    "dogerode": "0.0.3",
+    "dockerode": "~2.2.10",
+    "pluck": "0.0.4",
+    "connect-datadog": "0.0.5"
   },
   "devDependencies": {
     "nodemon": "~0.7.8",

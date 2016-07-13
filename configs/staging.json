@@ -51,11 +51,36 @@
       "80/tcp": [{}],
       "15000/tcp": [{}]
     },
+    "exposedPorts" : { "80/tcp": {},  "15000/tcp": {} },
+    "blkioDeviceReadBps": [{
+        "Path": "/dev/vda",
+        "Rate": 524288
+    }],
+    "blkioDeviceWriteBps": [{
+        "Path": "/dev/vda",
+        "Rate": 524288
+    }],
+    "blkioDeviceReadIOps": [{
+        "Path": "/dev/vda",
+        "Rate": 50
+    }],
+    "blkioDeviceWriteIOps": [{
+        "Path": "/dev/vda",
+        "Rate": 50
+    }],
+    "cpusetCpus": "0,1",
+    "kernelMemory": 8388608,
+    "memoryReservation": 268435456,
+    "memory": 536870912,
+    "memorySwap": 1073741824,
+    "defaultExpiry" : 300,
+    "defaultExpiryExtension" : 60,
+    "defaultSessionMaxTime": 1800,
     "cmd": ["/dockworker/bin/node", "/dockworker"]
   },
   "frontdoor": {
     "protocol": "http:",
-    "hostname": "10.0.1.121",
+    "hostname": "10.91.100.1",
     "port": 7050
   }
 }

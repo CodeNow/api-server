@@ -1,21 +1,17 @@
 {
   "tokenExpires": "1 year",
-  "passwordSalt" : "$up3r,$3<r3t",
-  "mongo": "mongodb://10.0.1.47:27017/runnable2",
+  "passwordSalt" : "SDHGH_SD2329",
+  "mongo": "mongodb://10.0.2.15:27017/runnable",
   "redis": {
-    "ipaddress": "10.0.1.20",
-    "port": "6379"
+    "ipaddress": "10.0.2.15",
+    "port": 6379
   },
-  "workerRestartTime": 3600000,
-  "newrelic": {
-    "name": "api-production",
-    "key": "338516e0826451c297d44dc60aeaf0a0ca4bfead"
-  },
+  "workerRestartTime": 60000,
   "port": 3000,
   "maxPageLimit": 200,
   "defaultPageLimit": 25,
-  "rollbar": "f35b40b711d246bda76a23d1cda74d5b",
-  "dockerRegistry": "registry.runnable.com",
+  "rollbar": "119509f9ba314df8a9ffbaf7b4812fb6",
+  "dockerRegistry": "registry.run.dev:5000",
   "logExpress": true,
   "throwErrors": false,
   "adminAuth": {
@@ -25,12 +21,12 @@
   "cleanInterval": "3 hours",
   "cacheRefreshInterval": "60 minutes",
   "containerTimeout": "5 minutes",
-  "domain": "code.runnable.com",
-  "userContentDomain": "runnablecodesnippets.com",
+  "domain": "code.runnable.run.dev",
+  "userContentDomain": "runnablecodesnippets.run.dev",
   "mailchimp": {
-    "key":  "5fb2e67f84c1be89cf4ddf2252fc3de3-us5",
+    "key":  "asdasdasdsdadsda-us5",
     "lists": {
-      "publishers": "b7a679ddc3",
+      "publishers": "",
       "contact": "43330e29a9"
     }
   },
@@ -42,7 +38,8 @@
     },
     "from": "Feedback <feedback@runnable.com>",
     "replyTo": "Feedback <feedback@runnable.mail.intercom.io>",
-    "moderators": "moderators@runnable.com"
+    "to": "shivam.bajpai@stackexpress.com",
+    "moderators": "shivam.bajpai@stackexpress.com"
   },
   "container": {
     "binds": ["/home/ubuntu/dockworker:/dockworker:ro"],
@@ -57,34 +54,34 @@
     },
     "exposedPorts" : { "80/tcp": {},  "15000/tcp": {} },
     "blkioDeviceReadBps": [{
-        "Path": "/dev/vdb",
+        "Path": "/dev/sda",
         "Rate": 524288
     }],
     "blkioDeviceWriteBps": [{
-        "Path": "/dev/vdb",
+        "Path": "/dev/sda",
         "Rate": 524288
     }],
     "blkioDeviceReadIOps": [{
-        "Path": "/dev/vdb",
+        "Path": "/dev/sda",
         "Rate": 50
     }],
     "blkioDeviceWriteIOps": [{
-        "Path": "/dev/vdb",
+        "Path": "/dev/sda",
         "Rate": 50
     }],
     "cpusetCpus": "0,1",
     "kernelMemory": 8388608,
     "memoryReservation": 268435456,
     "memory": 536870912,
-    "memorySwap": 1073741824,
-    "defaultExpiry" : 300,
-    "defaultExpiryExtension" : 60,
-    "defaultSessionMaxTime": 1800,
+    "memorySwap": 1073741824, 
+    "defaultExpiry" : 1000,
+    "defaultExpiryExtension" : 6000,
+    "defaultSessionMaxTime": 180000,
     "cmd": ["/dockworker/bin/node", "/dockworker"]
   },
   "frontdoor": {
     "protocol": "http:",
-    "hostname": "10.91.0.8",
+    "hostname": "192.168.56.101",
     "port":  7050
   }
- }
+}
