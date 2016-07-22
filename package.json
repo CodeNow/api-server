@@ -49,7 +49,7 @@
     "rollbar": "~0.3.8",
     "tar": "~2.2.1",
     "underscore.inflections": "~0.2.1",
-    "simple-api-client": "~0.2.3",
+    "simple-api-client": "~0.2.3"
   },
   "devDependencies": {
     "nodemon": "~0.7.8",
