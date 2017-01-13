@@ -34,7 +34,7 @@
     "map-utils": "~0.2.0",
     "middleware-flow": "~0.2.1",
     "mkdirp": "~0.3.5",
-    "mongoose": "^3.8.9",
+    "mongoose": "3.8.9",
     "mongoose-text-search": "0.0.2",
     "multiparty": "~3.2.2",
     "newrelic": "~1.4.0",
